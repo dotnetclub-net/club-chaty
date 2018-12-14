@@ -9,14 +9,13 @@ export let status = (req: Request, res: Response) => {
 
 export let start = (req: Request, res: Response) => {
   res.json({
-    started: false
+    qrcodeUrl: ''
   });
 };
 
-export let scan = (req: Request, res: Response) => {
-  res.json({
-    started: false
-  });
+export let stop = (req: Request, res: Response) => {
+  res.end();
 };
+
 
 

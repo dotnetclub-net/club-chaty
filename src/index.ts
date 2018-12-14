@@ -1,4 +1,4 @@
-import errorHandler from "errorhandler";
+import * as errorHandler from "errorhandler";
 import app from "./web/app";
 
 const port = process.env.PORT || 3000

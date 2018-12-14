@@ -2,14 +2,12 @@ import { Request, Response } from "express";
 
 
 export let listByUid = (req: Request, res: Response) => {
-  res.render("home", {
-    title: "Home"
-  });
+  let list = [];
+  res.json(list);
 };
 
 export let detail = (req: Request, res: Response) => {
-  res.render("home", {
-    title: "Home"
-  });
+  let msg = {};
+  res.json(msg);
 };
 
