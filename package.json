@@ -10,5 +10,9 @@
     "@types/node": "^10.12.15",
     "express": "^4.16.4",
     "nodemon": "^1.18.8"
+  },
+  "devDependencies": {
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
   }
 }
