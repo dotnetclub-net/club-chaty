@@ -1,0 +1,14 @@
+{
+  "main": "dist/index",
+  "types": "dist/index",
+  "scripts": {
+    "start": "npm run build:live",
+    "build": "tsc -p .",
+    "build:live": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
+  },
+  "dependencies": {
+    "@types/node": "^10.12.15",
+    "express": "^4.16.4",
+    "nodemon": "^1.18.8"
+  }
+}
