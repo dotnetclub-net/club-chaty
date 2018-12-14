@@ -11,3 +11,8 @@ export let detail = (req: Request, res: Response) => {
   res.json(msg);
 };
 
+export let download = (req: Request, res: Response) => {
+  let msg = {};
+  res.json(msg);
+};
+

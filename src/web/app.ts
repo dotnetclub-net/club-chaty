@@ -2,6 +2,7 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as path from "path";
 import * as vash from "vash";
+import * as timeout from 'connect-timeout';
 
 // Controllers (route handlers)
 import * as homeController from "./controllers/home";
@@ -19,6 +20,7 @@ app.set('view engine', 'html');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(timeout('20s'));
 
 
 app.get("/", homeController.index);
@@ -28,7 +30,7 @@ app.post("/bot/start", botController.start);
 app.post("/bot/stop", botController.stop);
 
 app.get("/chat/list/:uid", chatController.listByUid);
-app.get("/chat/:chatid", chatController.detail);
+app.get("/chat/show/:chatid", chatController.detail);
 
 app.post("/user/bind", userController.bind);
 
