@@ -40,7 +40,7 @@ export class ChatyBot{
         .then(() => console.log('Bot 已启动'))
         .catch(e => {
             console.error('启动 Bot 时发生错误')
-            console.error(e)
+            console.error(e);
         });
 
 
@@ -52,6 +52,7 @@ export class ChatyBot{
               encodeURIComponent(qrcode),
             ].join('')
           
+            console.log(`请扫描二维码以登录：${qrcode}`);
             process.nextTick(() => {self._startCB(qrcodeImageUrl);});
         }
           
@@ -69,27 +70,31 @@ export class ChatyBot{
             self._loginTime = null;
             self._loggedInUser = null;
             console.log(`${user} 已退出登录`);
-          }
-          
-          
-        function onMessage (msg: Message) {
-            if (msg.self()) {
-                return;
-            }
-            
+        }
+        
+        async function onMessage (msg: Message) {
             if (msg.room()) {
                 return;
             }
+
+            console.log(`收到新消息：${msg.toString()}`);
             
             // if (msg.type() !== Message.Type.ChatHistory) {
             //     msg.say('仅能处理“聊天记录”类型的消息。');
             //     return;
             // }
 
-            console.log(msg.toString());
+            // if (msg.type() !== Message.Type.Text) {
+            //    const file = await msg.toFileBox();
+            //    await file.toFile(file.name)
+            //    console.log('Save file to: ' + file.name)
+            // }
+
             ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
                 console.log(`正在发送回复 '${reply}'`);
-                msg.say(reply);
+                if(!msg.self()){
+                    msg.say(reply);
+                }
             });
         }
     }

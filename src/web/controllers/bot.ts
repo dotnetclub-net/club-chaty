@@ -10,7 +10,7 @@ export let start = (req: Request, res: Response) => {
   BotManager.start((qrcodeUrl) => {
     if(res.finished){ return; }
 
-    res.json({ "qrcodeUrl": qrcodeUrl  });
+    res.json({ qrcodeUrl  });
   });
 };
 

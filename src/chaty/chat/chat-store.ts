@@ -29,10 +29,8 @@ export let list = function(wechatId: string): ChatMessage[] {
         return [];
     }
 
-    const files = fs.readdirSync(dir, { withFileTypes: true })
-        .filter(dirent => dirent.isFile())
-        .filter(dirent => dirent.name.endsWith('.json'))
-        .map(dirent => dirent.name)
+    const files = fs.readdirSync(dir)
+        .filter(dirent => dirent.endsWith('.json'))
         .sort((a, b) => parseInt(getNameWithoutExtension(b))- parseInt(getNameWithoutExtension(a)));
 
     return files.map(file => fs.readFileSync(path.join(dir, file), 'utf-8'))
