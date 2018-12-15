@@ -30,7 +30,7 @@ app.post("/bot/start", botController.start);
 app.post("/bot/stop", botController.stop);
 
 app.get("/chat/list/:uid", chatController.listByUid);
-app.get("/chat/show/:chatid", chatController.detail);
+app.get("/chat/show/:uid/:chatid", chatController.detail);
 
 app.post("/user/bind", userController.bind);
 

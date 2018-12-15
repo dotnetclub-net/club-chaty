@@ -1,4 +1,5 @@
 import { Contact, Message, Wechaty } from 'wechaty'
+import * as ChatManager from '../chat/chat-manager'
 
 /**
  * Config wechaty, see: https://github.com/chatie/wechaty
@@ -9,7 +10,7 @@ const puppetOptions = {
   token: WECHATY_PUPPET_PADCHAT_TOKEN,
 }
 
-class ChatyBot{
+export class ChatyBot{
     private _bot : Wechaty;
     private _scanCB : Function;
     private _loggedInUser : Contact;
@@ -36,7 +37,7 @@ class ChatyBot{
         bot.on('message', onMessage);
         
         bot.start()
-        .then(() => console.log('Bot 已启动.'))
+        .then(() => console.log('Bot 已启动'))
         .catch(e => {
             console.error('Bot 发生了错误')
             console.error(e)
@@ -65,22 +66,24 @@ class ChatyBot{
           }
           
           
-        async function onMessage (msg: Message) {
-        const text = msg.text()
-        const type = msg.type()
-        const room = msg.room()
-        
-        if (msg.self()) {
-            return
-        }
-        
-        if (room) {
-            return
-        }
-        
-        if (type !== Message.Type.Text) {
-            return
-        }
+        function onMessage (msg: Message) {
+            if (msg.self()) {
+                return;
+            }
+            
+            if (msg.room()) {
+                return;
+            }
+            
+            if (msg.type() !== Message.Type.ChatHistory) {
+                msg.say('仅能处理“聊天记录”类型的消息。');
+                return;
+            }
+
+            console.log(msg.toString());
+            ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
+                msg.say(reply);
+            });
         }
     }
 
@@ -103,37 +106,8 @@ class ChatyBot{
     }
 }
 
-interface ChatyBotStatus {
+export interface ChatyBotStatus {
     logged_in: boolean;
     account_id: String;
     login_time: Date;
 }
-
-let botInstance : ChatyBot = null;
-
-export let getStatus = function() : ChatyBotStatus{
-    if(botInstance == null){
-        return {
-            logged_in: false,
-            account_id: null,
-            login_time: null
-        };
-    }
-
-    return botInstance.getStatus()
-};
-
-export let start = function(scanCb){
-    if(botInstance != null){
-        return;
-    }
-
-    botInstance = new ChatyBot(scanCb);
-};
-
-export let stop = function(){
-    if(botInstance != null){
-        botInstance.stop();
-    }
-    botInstance = null;
-};
