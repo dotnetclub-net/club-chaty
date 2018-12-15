@@ -5,9 +5,9 @@ import { convertToMessageList } from './converter';
 
 const messageBus = new MessageBus();
 const notice = {
-    success: '已收到你的消息。[Grin]',
-    notInChat: '你不是对话的参与者，请不要转发他人的对话。[Angry]',
-    error: '转换出错。[Awkward]'
+    success: '已收到你的消息 [Grin]',
+    notInChat: '你不是对话的参与者，请不要转发他人的对话 [Angry]',
+    error: '转换出错 [Awkward]'
 };
 
 

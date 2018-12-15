@@ -4,20 +4,20 @@ import * as ChatManager from '../chat/chat-manager'
 /**
  * Config wechaty, see: https://github.com/chatie/wechaty
  */
-const WECHATY_PUPPET_PADCHAT_TOKEN = 'puppet_padchat_579a8b3a5707e433'
-const puppet = 'wechaty-puppet-padchat'
+const puppet = 'wechaty-puppet-puppeteer'
 const puppetOptions = {
-  token: WECHATY_PUPPET_PADCHAT_TOKEN,
+//   token: WECHATY_PUPPET_PADCHAT_TOKEN,
 }
 
 export class ChatyBot{
     private _bot : Wechaty;
-    private _scanCB : Function;
+    private _startCB : Function;
+    private _requireScanning : boolean;
     private _loggedInUser : Contact;
     private _loginTime : Date;
 
-    constructor(scanCB){
-        this._scanCB = scanCB;
+    constructor(startCB: Function){
+        this._startCB = startCB;
         this._start();
     }
 
@@ -39,30 +39,36 @@ export class ChatyBot{
         bot.start()
         .then(() => console.log('Bot 已启动'))
         .catch(e => {
-            console.error('Bot 发生了错误')
+            console.error('启动 Bot 时发生错误')
             console.error(e)
         });
 
 
         function onScan (qrcode: string) {
+            self._requireScanning = true;
+
             const qrcodeImageUrl = [
               'https://api.qrserver.com/v1/create-qr-code/?data=',
               encodeURIComponent(qrcode),
             ].join('')
           
-            self._scanCB(qrcodeImageUrl);
-          }
+            process.nextTick(() => {self._startCB(qrcodeImageUrl);});
+        }
           
         function onLogin (user: Contact) {
             self._loginTime = new Date();
             self._loggedInUser = user;
+
             console.log(`${user} 已登录`);
+            if(!self._requireScanning){
+                process.nextTick(self._startCB);
+            }
           }
           
         function onLogout (user: Contact) {
             self._loginTime = null;
             self._loggedInUser = null;
-            console.log(`${user} logout`)
+            console.log(`${user} 已退出登录`);
           }
           
           
@@ -75,26 +81,30 @@ export class ChatyBot{
                 return;
             }
             
-            if (msg.type() !== Message.Type.ChatHistory) {
-                msg.say('仅能处理“聊天记录”类型的消息。');
-                return;
-            }
+            // if (msg.type() !== Message.Type.ChatHistory) {
+            //     msg.say('仅能处理“聊天记录”类型的消息。');
+            //     return;
+            // }
 
             console.log(msg.toString());
             ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
+                console.log(`正在发送回复 '${reply}'`);
                 msg.say(reply);
             });
         }
     }
 
-    stop(): void {
+    stop(callback : Function) {
         if(this._bot == null){
             return;
         }
 
-        this._bot.logout();
-        this._bot.stop();
-        this._bot = null;
+        this._bot.logout().then(() => {
+            this._bot.stop().then(() => {
+                this._bot = null;
+                process.nextTick(callback);
+            });
+        });
     }
 
     getStatus(): ChatyBotStatus {

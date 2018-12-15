@@ -77,3 +77,8 @@ typings/
 
 #DynamoDB Local files 
 .dynamodb/ 
+
+
+
+dotnetclub-chaty.memory-card.json
+messages/

@@ -1,4 +1,4 @@
-export declare enum MessageType {
+export enum MessageType {
     Unknown = 0,
     Attachment = 1,
     Audio = 2,
@@ -33,7 +33,7 @@ export class ChatMessageContent {
     }
 
     set textContent(val) {
-        this.textContent = val;
+        this._textContent = val;
     }
 }
 
@@ -98,7 +98,7 @@ export class ForwardedMessageList {
     }
 
     get messages(): ChatMessage[] {
-        return this.messages;
+        return this._messages;
     }
 
     static isInChat(messages: ChatMessage[], wechatId: string): boolean{

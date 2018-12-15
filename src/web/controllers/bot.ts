@@ -7,13 +7,18 @@ export let status = (req: Request, res: Response) => {
 };
 
 export let start = (req: Request, res: Response) => {
-  BotManager.start(function(qrcodeUrl){
-    res.json({ qrcodeUrl });
+  BotManager.start((qrcodeUrl) => {
+    if(res.finished){ return; }
+
+    res.json({ "qrcodeUrl": qrcodeUrl  });
   });
 };
 
 export let stop = (req: Request, res: Response) => {
-  BotManager.stop();
+  BotManager.stop(() => {
+    if(res.finished){ return; }
+    res.end();
+  });
 };
 
 

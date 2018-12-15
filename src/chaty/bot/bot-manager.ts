@@ -15,17 +15,20 @@ export let getStatus = function() : ChatyBotStatus {
     return botInstance.getStatus()
 };
 
-export let start = function(scanCb){
+export let start = function(callback: Function){
     if(botInstance != null){
+        callback();
         return;
     }
 
-    botInstance = new ChatyBot(scanCb);
+    botInstance = new ChatyBot(callback);
 };
 
-export let stop = function(){
+export let stop = function(callback : Function){
     if(botInstance != null){
-        botInstance.stop();
+        botInstance.stop(callback);
+        botInstance = null;
+    }else{
+        callback();
     }
-    botInstance = null;
 };
