@@ -76,9 +76,34 @@ export class ChatyBot{
         }
         
         async function onMessage (msg: Message) {
+            const ignoreIds = ['weixin', 'WeChat'];
+            const sourceId = msg.from() ? msg.from().id : '';
+            const destId = msg.to() ? msg.to().id : '';  // TODO: msg.to() null ?
+
+            if (!sourceId || !destId) {
+                return;
+            }
+           
+            if (msg.type() === Message.Type.Unknown) {
+                return;
+            }
+
             if (msg.room()) {
                 return;
             }
+
+            if(sourceId.substr(0, 3) === 'gh_'){
+                return;
+            }
+
+            if(ignoreIds.indexOf(sourceId) > -1){
+                return;
+            }
+
+            if(msg.self() && destId !== sourceId){
+                return;
+            }
+
 
             console.log(`收到新消息：${msg.toString()}`);
             
@@ -87,13 +112,13 @@ export class ChatyBot{
             //     return;
             // }
 
-            // if (msg.type() !== Message.Type.Text) {
-            //    const file = await msg.toFileBox();
-            //    await file.toFile(file.name)
-            //    console.log('Save file to: ' + file.name)
-            // }
+            if (msg.type() !== Message.Type.Text) {
+               const file = await msg.toFileBox();
+               await file.toFile(file.name)
+               console.log('Save file to: ' + file.name)
+            }
 
-            ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
+            ChatManager.enqueue(sourceId, msg.text(), function(reply: string){
                 console.log(`正在发送回复 '${reply}'`);
                 if(!msg.self()){
                     msg.say(reply);
