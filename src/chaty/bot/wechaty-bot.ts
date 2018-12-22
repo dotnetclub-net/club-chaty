@@ -1,13 +1,16 @@
 import { Contact, Message, Wechaty } from 'wechaty'
 import * as ChatManager from '../chat/chat-manager'
+import config from '../../config'
+import { PuppetModuleName } from 'wechaty/dist/src/puppet-config';
+import { PuppetOptions } from 'wechaty-puppet';
+
 
 /**
  * Config wechaty, see: https://github.com/chatie/wechaty
  */
-const puppet = 'wechaty-puppet-puppeteer'
-const puppetOptions = {
-//   token: WECHATY_PUPPET_PADCHAT_TOKEN,
-}
+const options = config();
+const puppet : PuppetModuleName =  options['wechaty-puppet-name'];
+const puppetOptions : PuppetOptions = options['wechaty-puppet-options'] || { };
 
 export class ChatyBot{
     private _bot : Wechaty;

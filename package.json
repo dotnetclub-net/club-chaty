@@ -16,7 +16,8 @@
     "puppeteer": "1.11.0",
     "vash": "^0.12.6",
     "wechaty": "^0.22.6",
-    "wechaty-puppet-puppeteer": "^0.14.1"
+    "wechaty-puppet-puppeteer": "^0.14.1",
+    "wechaty-puppet-padchat"   : "^0.16.1"
   },
   "devDependencies": {
     "nodemon": "^1.18.8",
