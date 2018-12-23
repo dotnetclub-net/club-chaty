@@ -1,20 +1,4 @@
-export enum MessageType {
-    Unknown = 0,
-    Attachment = 1,
-    Audio = 2,
-    Contact = 3,
-    ChatHistory = 4,
-    Emoticon = 5,
-    Image = 6,
-    Text = 7,
-    Location = 8,
-    MiniProgram = 9,
-    Money = 10,
-    Recalled = 11,
-    Url = 12,
-    Video = 13
-}
-
+import { MessageType } from "wechaty-puppet";
 
 export class ChatMessageContent {
     private _type : MessageType;
@@ -41,7 +25,8 @@ export class ChatMessageContent {
 export class ChatMessage{
     private _sourceName: string;
     private _sourceTime: string;
-    private _wechatId: string;
+    private _sourceUserId: string;
+
     private _content : ChatMessageContent;
 
 
@@ -62,12 +47,12 @@ export class ChatMessage{
          this._sourceTime = val;
     }
 
-    get wechatId() : string {
-        return this._wechatId;
+    get sourceUserId() : string {
+        return this._sourceUserId;
     }
 
-    set wechatId(val) {
-         this._wechatId = val;
+    set sourceUserId(val) {
+         this._sourceUserId = val;
     }
 
     get text() : string {
@@ -102,6 +87,6 @@ export class ForwardedMessageList {
     }
 
     static isInChat(messages: ChatMessage[], wechatId: string): boolean{
-        return messages.some(msg => msg.wechatId == wechatId);
+        return messages.some(msg => msg.sourceUserId == wechatId);
     }
 }

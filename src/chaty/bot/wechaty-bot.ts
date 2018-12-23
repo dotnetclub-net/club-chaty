@@ -88,7 +88,7 @@ export class ChatyBot{
             // }
 
 
-            ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
+            ChatManager.enqueue(msg.type(), msg.from().id, msg.text(), function(reply: string){
                 console.log(`正在发送回复 '${reply}'`);
                 if(!msg.self()){
                     msg.say(reply);
