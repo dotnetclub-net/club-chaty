@@ -1,4 +1,4 @@
-import { Contact, Message, Wechaty } from 'wechaty'
+import { Contact, Message, Wechaty, FileBox } from 'wechaty'
 import * as ChatManager from '../chat/chat-manager'
 import config from '../../config'
 import { PuppetModuleName } from 'wechaty/dist/src/puppet-config';
@@ -46,7 +46,6 @@ export class ChatyBot{
             console.error(e);
         });
 
-
         function onScan (qrcode: string) {
             self._requireScanning = true;
 
@@ -76,31 +75,7 @@ export class ChatyBot{
         }
         
         async function onMessage (msg: Message) {
-            const ignoreIds = ['weixin', 'WeChat'];
-            const sourceId = msg.from() ? msg.from().id : '';
-            const destId = msg.to() ? msg.to().id : '';  // TODO: msg.to() null ?
-
-            if (!sourceId || !destId) {
-                return;
-            }
-           
-            if (msg.type() === Message.Type.Unknown) {
-                return;
-            }
-
-            if (msg.room()) {
-                return;
-            }
-
-            if(sourceId.substr(0, 3) === 'gh_'){
-                return;
-            }
-
-            if(ignoreIds.indexOf(sourceId) > -1){
-                return;
-            }
-
-            if(msg.self() && destId !== sourceId){
+            if(shouldSkipMessage(msg)){
                 return;
             }
 
@@ -112,18 +87,45 @@ export class ChatyBot{
             //     return;
             // }
 
-            if (msg.type() !== Message.Type.Text) {
-               const file = await msg.toFileBox();
-               await file.toFile(file.name)
-               console.log('Save file to: ' + file.name)
-            }
 
-            ChatManager.enqueue(sourceId, msg.text(), function(reply: string){
+            ChatManager.enqueue(msg.from().id, msg.text(), function(reply: string){
                 console.log(`正在发送回复 '${reply}'`);
                 if(!msg.self()){
                     msg.say(reply);
                 }
             });
+        }
+
+        function shouldSkipMessage(msg : Message){
+            const ignoreIds = ['weixin', 'WeChat'];
+            const sourceId = msg.from() ? msg.from().id : '';
+            const destId = msg.to() ? msg.to().id : ''; 
+
+            if (!sourceId || !destId) {
+                return true;
+            }
+           
+            if (msg.type() === Message.Type.Unknown) {
+                return true;
+            }
+
+            if (msg.room()) {
+                return true;
+            }
+
+            if(sourceId.substr(0, 3) === 'gh_'){
+                return true;
+            }
+
+            if(ignoreIds.indexOf(sourceId) > -1){
+                return true;
+            }
+
+            if(msg.self() && destId !== sourceId){
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -146,6 +148,31 @@ export class ChatyBot{
             account_id: this._loggedInUser.id,
             login_time: this._loginTime
         };
+    }
+    
+    getImage(payload): void {
+
+        // const rawPayload = await msg.puppet["messageRawPayload"](msg.id);
+        // console.log(JSON.stringify(rawPayload));
+        // if (msg.type() !== Message.Type.Text) {
+        //     const file = await msg.toFileBox();
+        //     await file.toFile(file.name)
+        //     console.log('Saving file to: ' + file.name);
+        // }
+
+        const padManager : any = this._bot.puppet["padchatManager"];
+        const rpc : Promise<any> = padManager.WXGetMsgImage(JSON.stringify(payload));
+        rpc.then(function(imgRes) {
+            writeToFile(imgRes);
+        });
+
+        async function writeToFile(result){
+            const date = new Date().getTime();
+            const file = FileBox.fromBase64(result.image, `${date}.jpg`);
+            await file.toFile(file.name)
+            
+            console.log('Saving file to: ' + file.name);
+        }
     }
 }
 

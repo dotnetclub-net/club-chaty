@@ -32,3 +32,9 @@ export let stop = function(callback : Function){
         callback();
     }
 };
+
+// export let getImage = function(payload){
+//     if(botInstance != null){
+//         botInstance.getImage(payload);
+//     }
+// };
