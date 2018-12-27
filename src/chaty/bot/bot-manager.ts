@@ -33,8 +33,8 @@ export let stop = function(callback : Function){
     }
 };
 
-// export let getImage = function(payload){
-//     if(botInstance != null){
-//         botInstance.getImage(payload);
-//     }
-// };
+export let downloadFile = function(payload){
+    if(botInstance != null){
+        botInstance.downloadAttachment(payload.cdnattachurl, payload.aeskey, payload.totallen);
+    }
+};

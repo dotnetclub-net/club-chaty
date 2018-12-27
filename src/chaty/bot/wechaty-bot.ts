@@ -81,6 +81,7 @@ export class ChatyBot{
 
 
             console.log(`收到新消息：${msg.toString()}`);
+            console.log(msg.text());
             
             // if (msg.type() !== Message.Type.ChatHistory) {
             //     msg.say('仅能处理“聊天记录”类型的消息。');
@@ -91,7 +92,7 @@ export class ChatyBot{
             ChatManager.enqueue(msg.type(), msg.from().id, msg.text(), function(reply: string){
                 console.log(`正在发送回复 '${reply}'`);
                 if(!msg.self()){
-                    msg.say(reply);
+                   // msg.say(reply);
                 }
             });
         }
@@ -150,29 +151,19 @@ export class ChatyBot{
         };
     }
     
-    getImage(payload): void {
-
-        // const rawPayload = await msg.puppet["messageRawPayload"](msg.id);
-        // console.log(JSON.stringify(rawPayload));
-        // if (msg.type() !== Message.Type.Text) {
-        //     const file = await msg.toFileBox();
-        //     await file.toFile(file.name)
-        //     console.log('Saving file to: ' + file.name);
-        // }
-
-        const padManager : any = this._bot.puppet["padchatManager"];
-        const rpc : Promise<any> = padManager.WXGetMsgImage(JSON.stringify(payload));
-        rpc.then(function(imgRes) {
-            writeToFile(imgRes);
-        });
-
-        async function writeToFile(result){
-            const date = new Date().getTime();
-            const file = FileBox.fromBase64(result.image, `${date}.jpg`);
-            await file.toFile(file.name)
-            
-            console.log('Saving file to: ' + file.name);
-        }
+    async downloadAttachment(cdnattachurl, aeskey, totallen): Promise<void> {
+        const cdnManager : any = this._bot.puppet["cdnManager"];
+        const data = await cdnManager.downloadFile(
+            cdnattachurl || '',
+            aeskey || '',
+            totallen || 0,
+          );
+          
+        const date = new Date().getTime();
+        const file = FileBox.fromBase64(data.toString('base64'), `${date}.file`);
+        await file.toFile(file.name);
+          
+        console.log('Saving file to: ' + file.name);
     }
 }
 

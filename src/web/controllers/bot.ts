@@ -21,11 +21,11 @@ export let stop = (req: Request, res: Response) => {
   });
 };
 
-// export let image = (req: Request, res: Response) => {
-//   const payload = req.body;
-//   BotManager.getImage(payload);
+export let file = (req: Request, res: Response) => {
+  const payload = req.body;
+  BotManager.downloadFile(payload);
   
-//   res.end();
-// };
+  res.end();
+};
 
 

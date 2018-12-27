@@ -23,10 +23,12 @@ function getMessageText(msg: any) : string {
 export function convertToMessageList(text: string) : ChatMessage[]{
     const msgCollection = parseAsMsgCollection(text);
     const msgItems : any[] = msgCollection.recordinfo.datalist.dataitem;
+    // Text Url Image Emoticon Attachment Audio Video  ChatHistory
+    // 1    5    2      1         8               4       17
     const messages = msgItems.map(msg => {
         var message = new ChatMessage();
 
-        message.sourceUserId = msg.dataitemsource.fromusr;
+        message.sourceUserId = msg.dataitemsource.fromusr || msg.dataitemsource.realchatname;
         message.sourceName = msg.sourcename;
         message.sourceTime = msg.sourcetime;
         

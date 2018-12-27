@@ -28,6 +28,7 @@ app.get("/", homeController.index);
 app.get("/bot/status", botController.status);
 app.post("/bot/start", botController.start);
 app.post("/bot/stop", botController.stop);
+app.post("/bot/file", botController.file);
 
 app.get("/chat/list/:uid", chatController.listByUid);
 app.get("/chat/show/:uid/:chatid", chatController.detail);
