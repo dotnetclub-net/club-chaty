@@ -31,20 +31,11 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
     }
     
     getConvertedMessage(): Promise<ChatMessage> {
-        if(!this._converted){
-            const message = this.getMetaMessage();
-            message.content = new TextChatMessageContent('[视频]');
-            this._converted = message;
-        }
-
         return Promise.resolve(this._converted);
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return null;
-
-        // todo: support downloading videos
-        // return this._additionalMsgHandler;
+        return this._additionalMsgHandler;
     }
 
     messagefileDownloaded(messageFile: FileBox): void {

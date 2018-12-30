@@ -72,5 +72,7 @@ export let downloadFile = function(payload: CdnDownloadableFile) : Promise<FileB
     }
 };
 
-// todo: support video?
-// todo: support attachment?
+
+
+// todo: support video?   : padchat: true, padpro: false
+// todo: support attachment?   : padchat: false, padpro: true
