@@ -3,8 +3,8 @@ import * as path from "path";
 import ChatMessage from "./messages/chat-message";
 import * as crypto from 'crypto';
 
-const baseStorageDir = path.resolve(__dirname + '../../../../messages');
-const baseFileStorageDir = path.resolve(__dirname + '../../../../files');
+const baseStorageDir = path.resolve(__dirname + '../../../../data/messages');
+const baseFileStorageDir = path.resolve(__dirname + '../../../../data/files');
 
 
 function getStorageDir(wechatId: string, createDir: boolean) {

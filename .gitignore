@@ -81,7 +81,7 @@ typings/
 
 
 dotnetclub-chaty.memory-card.json
-messages/
+data/
 dist/
 config/config.development.json
 config/config.production.json
