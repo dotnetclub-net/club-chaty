@@ -1,5 +1,5 @@
 
-import ConvertedMessage from "../converted-message";
+import IntermediateMessage from "../intermediate-message";
 import { HistoryMessageType } from "../../messages/message-type";
 import { MessageType as WeChatyMessageType } from 'wechaty-puppet';
 import BaseConverter from "../base-converter";
@@ -7,7 +7,7 @@ import ChatMessage from "../../messages/chat-message";
 import AdditionalMessageHanlder from '../additinal-message-handler'
 import { Message, FileBox } from "wechaty";
 import * as ChatStore from '../../chat-store';
-import { ImageMessageContent } from "../../messages/message-content";
+import { ImageChatMessageContent as ImageChatMessageContent } from "../../messages/message-content";
 
 
 export class ImageMessageConverter extends BaseConverter {
@@ -25,13 +25,13 @@ export class ImageMessageConverter extends BaseConverter {
         return false;
     }
     
-    convert(parsedXMLObj: any): ConvertedMessage {
-        return new ImageConvertedMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any): IntermediateMessage {
+        return new ImageMessage(parsedXMLObj);
     }
 }
 
 
-export class ImageConvertedMessage extends ConvertedMessage {
+export class ImageMessage extends IntermediateMessage {
     private _converted : ChatMessage;
     private _additionalImageHandler : AdditionalMessageHanlder;
 
@@ -62,7 +62,7 @@ export class ImageConvertedMessage extends ConvertedMessage {
             const fileId = ChatStore.storeFile(buffer);
            
             const message = this.getMetaMessage();
-            message.content = new ImageMessageContent(fileId, imageFile.name);
+            message.content = new ImageChatMessageContent(fileId, imageFile.name);
             
             this._converted = message;
         });
@@ -72,8 +72,8 @@ export class ImageConvertedMessage extends ConvertedMessage {
 class ImageAdditionalMessageHandler implements AdditionalMessageHanlder{
 
     private _name : string;
-    private _convertingMessage: ImageConvertedMessage;
-    constructor(name: string, convertingMessage: ImageConvertedMessage) {
+    private _convertingMessage: ImageMessage;
+    constructor(name: string, convertingMessage: ImageMessage) {
         this._name = name;
         this._convertingMessage = convertingMessage;
     }

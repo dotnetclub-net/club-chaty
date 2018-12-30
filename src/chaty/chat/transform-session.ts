@@ -1,12 +1,16 @@
 import { Message } from "wechaty";
 import * as BotManager from "../bot/bot-manager"
-import * as converter from "./converting/converter"
 import RawChatHistoryMessage from "./messages/raw-history-message";
 import { MessageType } from "wechaty-puppet";
-import ConvertedMessage from "./converting/converted-message";
 import ChatMessage from "./messages/chat-message";
-import { TextMessageContent } from "./messages/message-content";
+import { TextChatMessageContent } from "./messages/message-content";
 import * as ChatStore from './chat-store';
+import * as xmlParser from 'fast-xml-parser';
+import { ImageMessageConverter } from './converting/converters/image-message-converter';
+import { UrlMessageConverter } from './converting/converters/url-message-converter';
+import { TextMessageConverter, TextMessage } from "./converting/converters/text-message-converter";
+import IntermediateMessage from "./converting/intermediate-message";
+
 
 const notice = {
     started: '已收到你的消息 [Grin]',
@@ -20,11 +24,24 @@ interface ConvertState {
     missingItems: any
 }
 
+var allConverters = [
+    new ImageMessageConverter(),
+    new UrlMessageConverter(),
+    new TextMessageConverter()
+];
+
+
+function parseXMLToMsgCollection(msgText) : any {
+    const msgObj = xmlParser.parse(msgText);
+    const recordListXmlText = msgObj.msg.appmsg.recorditem;
+    return xmlParser.parse(recordListXmlText);
+}
+
+
 
 export default class TransformSession {
-
     private _historyMessage : RawChatHistoryMessage;
-    private  _converting : ConvertedMessage[];
+    private  _intermediateMessages : IntermediateMessage[];
     private _onCompleted : Function;
     private _createdTime : Date;
 
@@ -39,9 +56,10 @@ export default class TransformSession {
     }
 
     start() : void {
-        this._converting = converter.convertToMessageList(this._historyMessage.text);
-        const convertedState = this.getUpdatedState();
-        if(!convertedState.hasMissingItems){
+        this._intermediateMessages = this.parseAsIntermediateMessages(this._historyMessage.text);
+        
+        const state = this.getLatestState();
+        if(!state.hasMissingItems){
             this.reply(notice.completed);
             this.convert();
             this._onCompleted();
@@ -50,8 +68,8 @@ export default class TransformSession {
 
         this.reply(notice.started);
         let msg = '不过，有一些内容需要单独再传过来：<br />';
-        for(const key in convertedState.missingItems){
-            const count = convertedState.missingItems[key];
+        for(const key in state.missingItems){
+            const count = state.missingItems[key];
             msg += `${count} 个 ${key} <br />`;
         }
         msg += '请按顺序提供这些内容，如果不想提供，请回复“直接转换”或“取消”。';
@@ -76,15 +94,15 @@ export default class TransformSession {
 
         let acceptedAs : string = '';
         
-        const deferedMsgs = this._converting.filter(m => m.additionalMessageHanlder != null);
-        deferedMsgs.forEach(msg => {
+        const incompleteMessages = this._intermediateMessages.filter(m => m.additionalMessageHanlder != null);
+        incompleteMessages.forEach(msg => {
             if(!acceptedAs && msg.additionalMessageHanlder.accept(message)){
                 acceptedAs = msg.additionalMessageHanlder.name;
                 return false;
             }
         });
 
-        const currentState = this.getUpdatedState();
+        const currentState = this.getLatestState();
         if(!currentState.hasMissingItems){
             this.convert();
             return;
@@ -104,30 +122,52 @@ export default class TransformSession {
         }
     }
 
-    get createdAt() : Date {
-        return this._createdTime;
-    }
-
-    get expired() : boolean {
-        const sessionExpire = 600 * 1000; // 10 分钟
+    private parseAsIntermediateMessages(rawMsgText : string) : IntermediateMessage[]{
+        const msgCollection = parseXMLToMsgCollection(rawMsgText);
+        const msgItems : any[] = msgCollection.recordinfo.datalist.dataitem;
         
-        const timeElapsed = new Date().getTime() - this.createdAt.getTime();
-        return timeElapsed > sessionExpire;
+        return msgItems.map(msg => {
+            const converter = allConverters.find((c) => {
+                const typeVal = parseInt(msg.type);
+                return c.supportsType(typeVal, msg);
+            });
+
+            if(!converter){
+                // 不支持的消息，使用文本类型，显示原始提示广西
+                return new TextMessage(msg);
+            }
+
+            return converter.convertFromXML(msg);
+        });
     }
 
-    private convert() : void{
-        const converted : ChatMessage[] = this._converting.map(msg => {
+    private convert() : void {
+        const converted : ChatMessage[] = this._intermediateMessages.map(msg => {
             if(!msg.additionalMessageHanlder){
                 return msg.getConvertedMessage();
             }else{
-                const skipped = ConvertedMessage.buildMetaMessage(msg.originalXMLObject);
-                skipped.content = new TextMessageContent(`[${msg.additionalMessageHanlder.name}]`);
+                const skipped = IntermediateMessage.buildMetaMessage(msg.originalXMLObject);
+                skipped.content = new TextChatMessageContent(`[${msg.additionalMessageHanlder.name}]`);
                 return skipped;
             }
         });
 
-        ChatStore.store(this._historyMessage.fromId, converted);
-        this.reply(notice.completed);
+        const chatId = ChatStore.store(this._historyMessage.fromId, converted);
+        this.reply(notice.completed + '<br />会话 Id:' + chatId);
+    }
+
+    private getLatestState() : ConvertState{
+        const incompleteMessages = this._intermediateMessages.filter(m => m.additionalMessageHanlder != null);
+        const stat : any = {};
+        incompleteMessages.forEach((cur)=> {
+            const handlerName = cur.additionalMessageHanlder.name;
+            stat[handlerName] = (stat[handlerName] || 0) + 1;
+        });
+
+        return {
+            hasMissingItems: incompleteMessages.length > 0,
+            missingItems: stat
+        }
     }
 
     private reply(text) : void {
@@ -137,18 +177,16 @@ export default class TransformSession {
            text);
     }
 
-    private getUpdatedState() : ConvertState{
-        const deferedMsgs = this._converting.filter(m => m.additionalMessageHanlder != null);
-        const stat : any = {};
-        deferedMsgs.forEach((cur)=> {
-            const handlerName = cur.additionalMessageHanlder.name;
-            stat[handlerName] = (stat[handlerName] || 0) + 1;
-        });
 
-        return {
-            hasMissingItems: deferedMsgs.length > 0,
-            missingItems: stat
-        }
+    get createdAt() : Date {
+        return this._createdTime;
+    }
+
+    get expired() : boolean {
+        const sessionExpire = 600 * 1000; // 10 分钟
+        
+        const timeElapsed = new Date().getTime() - this.createdAt.getTime();
+        return timeElapsed > sessionExpire;
     }
 }
   

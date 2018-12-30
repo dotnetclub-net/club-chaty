@@ -2,7 +2,7 @@ import ChatMessage from "../messages/chat-message";
 import AdditionalMessageHanlder from "./additinal-message-handler";
 
 
-export default abstract class ConvertedMessage {
+export default abstract class IntermediateMessage {
     protected _xmlObj : any;
     constructor(xmlObj: any){
         this._xmlObj = xmlObj;
@@ -16,7 +16,7 @@ export default abstract class ConvertedMessage {
     }
     
     protected getMetaMessage(): ChatMessage {
-        return ConvertedMessage.buildMetaMessage(this._xmlObj);
+        return IntermediateMessage.buildMetaMessage(this._xmlObj);
     }
 
     static buildMetaMessage(xmlObj: any){

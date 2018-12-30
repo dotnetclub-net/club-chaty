@@ -47,12 +47,15 @@ export let retrieveFile = function(fileId: string) : Buffer {
     return fs.readFileSync(filePath);
 };
 
-export let store = function(wechatId: string, messages : ChatMessage[]):void {
+export let store = function(wechatId: string, messages : ChatMessage[]): string {
     const dir = getStorageDir(wechatId.replace(/@/, ''), true);
 
-    const filename = `${new Date().getTime()}.json`;
+    const chatId = new Date().getTime().toString();
+    const filename = `${chatId}.json`;
     var jsonContent = JSON.stringify(messages);
     fs.writeFileSync(path.join(dir, filename), jsonContent); 
+
+    return chatId;
 };
 
 export let list = function(wechatId: string): ChatMessage[] {
@@ -73,6 +76,6 @@ export let list = function(wechatId: string): ChatMessage[] {
 function getNameWithoutExtension(filename: string) : string {
     const name = filename.substr(filename.lastIndexOf('/') + 1);
     const indexOfDot = name.lastIndexOf('.');
-    return indexOfDot == -1 ? name : name.substr(0, indexOfDot);
+    return indexOfDot === -1 ? name : name.substr(0, indexOfDot);
 }
 

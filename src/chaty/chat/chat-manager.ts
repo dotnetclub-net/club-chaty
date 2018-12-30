@@ -21,7 +21,7 @@ export let enqueue = function(message: Message): void {
         const isHistoryMsg : boolean  = message.type() === MessageType.ChatHistory
         const sourceId : string = message.from().id;
         let session : TransformSession = sessions[sourceId];
-        const hasValidSession = session != null && !session.expired;
+        const hasValidSession = !!session && !session.expired;
         
         if(hasValidSession && !isHistoryMsg){
             session.newMessageArrived(message);

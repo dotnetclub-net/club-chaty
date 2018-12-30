@@ -121,7 +121,7 @@ export class ChatyBot{
     }
 
     stop(callback : Function) {
-        if(this._bot == null){
+        if(!this._bot){
             return;
         }
 

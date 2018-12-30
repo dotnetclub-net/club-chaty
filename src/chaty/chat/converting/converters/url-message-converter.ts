@@ -1,10 +1,10 @@
 
-import ConvertedMessage from "../converted-message";
+import IntermediateMessage from "../intermediate-message";
 import { HistoryMessageType } from "../../messages/message-type";
 import BaseConverter from "../base-converter";
 import ChatMessage from "../../messages/chat-message";
 import AdditionalMessageHanlder from '../additinal-message-handler'
-import { UrlMessageContent } from "../../messages/message-content";
+import { UrlChatMessageContent } from "../../messages/message-content";
 
 
 
@@ -15,13 +15,13 @@ export class UrlMessageConverter extends BaseConverter {
         // return type === HistoryMessageType.Url;
     }
     
-    convert(parsedXMLObj: any): ConvertedMessage {
-        return new UrlConvertedMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any): IntermediateMessage {
+        return new UrlMessage(parsedXMLObj);
     }
 }
 
 
-export class UrlConvertedMessage extends ConvertedMessage {
+export class UrlMessage extends IntermediateMessage {
     private _converted : ChatMessage;
 
     constructor(_xmlObj: any){

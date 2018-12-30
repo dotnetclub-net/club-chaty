@@ -4,7 +4,7 @@ import { ChatyBot, ChatyBotStatus } from "./wechaty-bot";
 let botInstance : ChatyBot = null;
 
 export let getStatus = function() : ChatyBotStatus {
-    if(botInstance == null){
+    if(!botInstance){
         return {
             logged_in: false,
             account_id: null,
@@ -16,7 +16,7 @@ export let getStatus = function() : ChatyBotStatus {
 };
 
 export let start = function(callback: Function){
-    if(botInstance != null){
+    if(!!botInstance){
         callback();
         return;
     }
@@ -25,7 +25,7 @@ export let start = function(callback: Function){
 };
 
 export let stop = function(callback : Function){
-    if(botInstance != null){
+    if(!!botInstance){
         botInstance.stop(callback);
         botInstance = null;
     }else{
@@ -36,7 +36,7 @@ export let stop = function(callback : Function){
 export let sendMessageToContact = function(selfId: string, toId : string, text: string){
     const status = getStatus();
 
-    if(botInstance == null || !status.logged_in){
+    if(!botInstance || !status.logged_in){
         throw new Error(`无法回复 ${toId}，因为当前还没有登录微信。`); 
     }
 
@@ -48,7 +48,7 @@ export let sendMessageToContact = function(selfId: string, toId : string, text: 
 };
 
 export let downloadFile = function(payload){
-    if(botInstance != null){
+    if(!!botInstance){
         botInstance.downloadAttachment(payload.cdnattachurl, payload.aeskey, payload.totallen);
     }
 };
