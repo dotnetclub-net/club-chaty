@@ -13,7 +13,7 @@ import IntermediateMessage from "./converting/intermediate-message";
 
 
 const notice = {
-    started: '已收到你的消息 [Grin]',
+    started: '消息已收到 [Grin]',
     completed: '转换完成 [Smart]',
     notInChat: '你不是对话的参与者，请不要转发他人的对话 [Angry]'
 }
@@ -32,9 +32,11 @@ var allConverters = [
 
 
 function parseXMLToMsgCollection(msgText) : any {
-    const msgObj = xmlParser.parse(msgText);
+    const xmlOptions = {attrNodeName: '@', attributeNamePrefix: '', ignoreAttributes : false };
+    const msgObj = xmlParser.parse(msgText, xmlOptions);
+   
     const recordListXmlText = msgObj.msg.appmsg.recorditem;
-    return xmlParser.parse(recordListXmlText);
+    return xmlParser.parse(recordListXmlText, xmlOptions);
 }
 
 
@@ -44,6 +46,7 @@ export default class TransformSession {
     private  _intermediateMessages : IntermediateMessage[];
     private _onCompleted : Function;
     private _createdTime : Date;
+    private _converted: boolean;
 
     constructor(historyMessage : Message, onCompleted : Function){
         this._historyMessage = new RawChatHistoryMessage(
@@ -60,17 +63,16 @@ export default class TransformSession {
         
         const state = this.getLatestState();
         if(!state.hasMissingItems){
-            this.reply(notice.completed);
             this.convert();
             this._onCompleted();
             return;
         }
 
         this.reply(notice.started);
-        let msg = '不过，有一些内容需要单独再传过来：<br />';
+        let msg = '有些内容需要单独传过来：\n';
         for(const key in state.missingItems){
             const count = state.missingItems[key];
-            msg += `${count} 个 ${key} <br />`;
+            msg += `${count}个${key}\n`;
         }
         msg += '请按顺序提供这些内容，如果不想提供，请回复“直接转换”或“取消”。';
         this.reply(msg);
@@ -95,13 +97,15 @@ export default class TransformSession {
         let acceptedAs : string = '';
         
         const incompleteMessages = this._intermediateMessages.filter(m => m.additionalMessageHanlder != null);
-        incompleteMessages.forEach(msg => {
-            if(!acceptedAs && msg.additionalMessageHanlder.accept(message)){
-                acceptedAs = msg.additionalMessageHanlder.name;
-                return false;
+        for(var i=0;i<incompleteMessages.length;i++){
+            const msg = incompleteMessages[i];
+            const handlerName = msg.additionalMessageHanlder.name;
+            if(msg.additionalMessageHanlder.accept(message)){
+                acceptedAs = handlerName;
+                break;
             }
-        });
-
+        }
+        
         const currentState = this.getLatestState();
         if(!currentState.hasMissingItems){
             this.convert();
@@ -109,10 +113,10 @@ export default class TransformSession {
         }
 
         if(!!acceptedAs){
-            let msg = `收到 1 个 ${acceptedAs}，还缺少：`;
+            let msg = `收到1个${acceptedAs}，还缺少：`;
             for(const key in currentState.missingItems){
                 const count = currentState.missingItems[key];
-                msg += `${count} 个 ${key} <br />`;
+                msg += `${count}个${key}\n`;
             }
             msg += '请按顺序提供这些内容，如果不想提供，请回复“直接转换”或“取消”。';
             this.reply(msg);
@@ -128,12 +132,12 @@ export default class TransformSession {
         
         return msgItems.map(msg => {
             const converter = allConverters.find((c) => {
-                const typeVal = parseInt(msg.type);
+                const typeVal = parseInt(msg['@'].datatype);
                 return c.supportsType(typeVal, msg);
             });
 
             if(!converter){
-                // 不支持的消息，使用文本类型，显示原始提示广西
+                // 不支持的消息，使用文本类型，显示原始提示
                 return new TextMessage(msg);
             }
 
@@ -142,6 +146,10 @@ export default class TransformSession {
     }
 
     private convert() : void {
+        if(this._converted){
+            return;
+        }
+        
         const converted : ChatMessage[] = this._intermediateMessages.map(msg => {
             if(!msg.additionalMessageHanlder){
                 return msg.getConvertedMessage();
@@ -152,8 +160,10 @@ export default class TransformSession {
             }
         });
 
+        this._converted = true;
         const chatId = ChatStore.store(this._historyMessage.fromId, converted);
-        this.reply(notice.completed + '<br />会话 Id:' + chatId);
+        this.reply(notice.completed + '\n会话 Id:' + chatId);
+        this._onCompleted();
     }
 
     private getLatestState() : ConvertState{

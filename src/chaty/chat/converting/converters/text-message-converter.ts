@@ -26,7 +26,7 @@ export class TextMessage extends IntermediateMessage {
         super(_xmlObj);
 
         const message = this.getMetaMessage();
-        message.content = new TextChatMessageContent(this._xmlObj.datadesc);
+        message.content = new TextChatMessageContent(this._xmlObj.datadesc || this._xmlObj.datatitle);
         this._converted = message;
     }
     

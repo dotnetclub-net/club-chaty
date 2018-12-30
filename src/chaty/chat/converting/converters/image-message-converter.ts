@@ -39,7 +39,7 @@ export class ImageMessage extends IntermediateMessage {
         super(xmlObj);
 
         let handlerName = '图片';
-        const isEmotion = '[表情]' === xmlObj.datadesc ||  '[Sticker]' === xmlObj.datadesc ;
+        const isEmotion = '[表情]' === xmlObj.datadesc ||  '[Sticker]' === xmlObj.datadesc;
         if(isEmotion){
             handlerName = '表情';
         }
@@ -69,21 +69,28 @@ export class ImageMessage extends IntermediateMessage {
     }
 }
 
-class ImageAdditionalMessageHandler implements AdditionalMessageHanlder{
-
+class ImageAdditionalMessageHandler implements AdditionalMessageHanlder {
+    private _accepting : boolean;
     private _name : string;
     private _convertingMessage: ImageMessage;
+
     constructor(name: string, convertingMessage: ImageMessage) {
         this._name = name;
         this._convertingMessage = convertingMessage;
     }
 
-    accept(message: Message): boolean {
-        if(message.type() !== WeChatyMessageType.Image){
+    accept(message: Message) : boolean {
+        if(this._accepting){
             return false;
         }
 
-        message.toFileBox().then(async (fileBox)=> {
+        this._accepting = true;
+        if(message.type() !== WeChatyMessageType.Image
+            && message.type() !== WeChatyMessageType.Emoticon){
+            return false;
+        }
+
+        message.toFileBox().then((fileBox) => {
             this._convertingMessage.imageDownloaded(fileBox);
         });
         return true;

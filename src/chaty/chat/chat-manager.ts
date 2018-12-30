@@ -16,7 +16,7 @@ function clearSession(sourceId: string){
     };
 }
 
-export let enqueue = function(message: Message): void {
+export let handleMessage = function(message: Message): void {
     try{
         const isHistoryMsg : boolean  = message.type() === MessageType.ChatHistory
         const sourceId : string = message.from().id;
@@ -32,13 +32,16 @@ export let enqueue = function(message: Message): void {
             session = new TransformSession(message, clearSession(message.from().id));
             sessions[sourceId] = session;
             session.start();
-            return;
         }else{
             clearSession(message.from().id)();
             process.nextTick(() => {
                 reply(message, notice.notHistory);
             });
         }
+
+        // todo: 自动加好友
+        // todo: 自动加群？
+        // todo: 处理 @ 提到我
     }catch(err){
         console.warn('消息处理出错：');
         console.warn(err);

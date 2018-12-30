@@ -10,9 +10,7 @@ import { UrlChatMessageContent } from "../../messages/message-content";
 
 export class UrlMessageConverter extends BaseConverter {
     supportsType(type: HistoryMessageType, parsedXMLObj: any): boolean {
-        return false;
-        // todo: support URL analyzing...
-        // return type === HistoryMessageType.Url;
+        return type === HistoryMessageType.Url;
     }
     
     convertFromXML(parsedXMLObj: any): IntermediateMessage {
@@ -28,8 +26,10 @@ export class UrlMessage extends IntermediateMessage {
         super(_xmlObj);
 
         const message = this.getMetaMessage();
-        // todo: parse url
-        // message.content = new UrlMessageContent(this._xmlObj.datadesc);
+        message.content = new UrlChatMessageContent(
+            this._xmlObj.link,
+            this._xmlObj.weburlitem.title,
+            this._xmlObj.weburlitem.desc);
         this._converted = message;
     }
     

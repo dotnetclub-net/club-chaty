@@ -4,6 +4,7 @@ import ChatMessageContent from "./chat-message-content";
 export default class ChatMessage{
     private _sourceName: string;
     private _sourceTime: string;
+    private _sourceTimestamp: string;
     private _sourceUserId: string;
 
     private _content : ChatMessageContent;
@@ -24,6 +25,14 @@ export default class ChatMessage{
 
     set sourceTime(val) {
          this._sourceTime = val;
+    }
+
+    get sourceTimestamp() : string {
+        return this._sourceTimestamp;
+    }
+
+    set sourceTimestamp(val) {
+         this._sourceTimestamp = val;
     }
 
     get sourceUserId() : string {

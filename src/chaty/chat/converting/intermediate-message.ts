@@ -25,6 +25,7 @@ export default abstract class IntermediateMessage {
         message.sourceUserId = xmlObj.dataitemsource.fromusr || xmlObj.dataitemsource.realchatname;
         message.sourceName = xmlObj.sourcename;
         message.sourceTime = xmlObj.sourcetime;
+        message.sourceTimestamp = xmlObj.srcMsgCreateTime;
         
         return message;
     }

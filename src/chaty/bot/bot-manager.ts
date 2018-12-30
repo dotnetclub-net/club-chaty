@@ -16,16 +16,19 @@ export let getStatus = function() : ChatyBotStatus {
 };
 
 export let start = function(callback: Function){
-    if(!!botInstance){
+    if(!!botInstance && !!botInstance.getStatus().logged_in){
         callback();
         return;
     }
 
+    // todo: pending
     botInstance = new ChatyBot(callback);
 };
 
 export let stop = function(callback : Function){
-    if(!!botInstance){
+    // todo: pending
+
+    if(!!botInstance && !!botInstance.getStatus().logged_in){
         botInstance.stop(callback);
         botInstance = null;
     }else{

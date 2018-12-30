@@ -83,8 +83,7 @@ export class ChatyBot{
             console.log(`收到新消息：${msg.toString()}`);
             const payload = await self._bot.puppet["messageRawPayload"](msg.id);
             console.log(JSON.stringify(payload));
-
-            ChatManager.enqueue(msg);
+            ChatManager.handleMessage(msg);
         }
 
         function shouldSkipMessage(msg : Message){
@@ -157,8 +156,14 @@ export class ChatyBot{
     }
     
     async sendMessage(toId : string, text: string): Promise<void> {
-        // const contact = this._bot.Contact.load(toId)
-        // await contact.say(text);
+        console.log(`正在回复 ${toId}：${text}`);
+
+        if(toId === this._loggedInUser.id){
+            return;
+        }
+
+        const contact = this._bot.Contact.load(toId)
+        await contact.say(text);
     }
 }
 
