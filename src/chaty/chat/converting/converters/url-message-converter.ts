@@ -4,29 +4,32 @@ import { HistoryMessageType } from "../../messages/message-type";
 import BaseConverter from "../base-converter";
 import ChatMessage from "../../messages/chat-message";
 import AdditionalMessageHanlder from '../additinal-message-handler'
-import { TextMessageContent } from "../../messages/message-content";
+import { UrlMessageContent } from "../../messages/message-content";
 
 
 
-export class TextMessageConverter extends BaseConverter {
+export class UrlMessageConverter extends BaseConverter {
     supportsType(type: HistoryMessageType, parsedXMLObj: any): boolean {
-        return type === HistoryMessageType.Text || type === HistoryMessageType.Url;
+        return false;
+        // todo: support URL analyzing...
+        // return type === HistoryMessageType.Url;
     }
     
     convert(parsedXMLObj: any): ConvertedMessage {
-        return new TextConvertedMessage(parsedXMLObj);
+        return new UrlConvertedMessage(parsedXMLObj);
     }
 }
 
 
-export class TextConvertedMessage extends ConvertedMessage {
+export class UrlConvertedMessage extends ConvertedMessage {
     private _converted : ChatMessage;
 
     constructor(_xmlObj: any){
         super(_xmlObj);
 
         const message = this.getMetaMessage();
-        message.content = new TextMessageContent(this._xmlObj.datadesc);
+        // todo: parse url
+        // message.content = new UrlMessageContent(this._xmlObj.datadesc);
         this._converted = message;
     }
     

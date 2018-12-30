@@ -1,6 +1,8 @@
 import * as xmlParser from 'fast-xml-parser';
-import { TextMessageConverter } from "./converters/text-message-converter";
 import ConvertedMessage from './converted-message';
+import { ImageMessageConverter } from './converters/image-message-converter';
+import { UrlMessageConverter } from './converters/url-message-converter';
+import { TextMessageConverter } from "./converters/text-message-converter";
 
 function parseAsMsgCollection(msgText) : any {
     const msgObj = xmlParser.parse(msgText);
@@ -10,6 +12,8 @@ function parseAsMsgCollection(msgText) : any {
 
 
 var allConverters = [
+    new ImageMessageConverter(),
+    new UrlMessageConverter(),
     new TextMessageConverter()
 ];
 
@@ -19,8 +23,8 @@ export function convertToMessageList(text: string) : ConvertedMessage[] {
     const msgItems : any[] = msgCollection.recordinfo.datalist.dataitem;
     return msgItems.map(msg => {
         const converter = allConverters.find((c) => {
-            // todo: number -> MessageType
-           return c.supportsType(msg.type, msg);
+            const typeVal = parseInt(msg.type);
+            return c.supportsType(typeVal, msg);
         });
 
         if(converter == null){

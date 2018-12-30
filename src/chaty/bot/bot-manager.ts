@@ -33,15 +33,15 @@ export let stop = function(callback : Function){
     }
 };
 
-export let sendMessageToContact = function(fromId: string, toId : string, text: string){
+export let sendMessageToContact = function(selfId: string, toId : string, text: string){
     const status = getStatus();
 
     if(botInstance == null || !status.logged_in){
         throw new Error(`无法回复 ${toId}，因为当前还没有登录微信。`); 
     }
 
-    if(status.account_id !== fromId){
-        throw new Error(`无法回复 ${toId}，因为当前登录的微信用户不是 ${fromId}，当前登录的是 ${status.account_id}。`);
+    if(status.account_id !== selfId){
+        throw new Error(`无法回复 ${toId}，因为当前登录的微信用户不是 ${selfId}，当前登录的是 ${status.account_id}。`);
     }
 
     botInstance.sendMessage(toId, text);

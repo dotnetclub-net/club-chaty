@@ -1,8 +1,10 @@
 import * as fs from "fs";
 import * as path from "path";
 import ChatMessage from "./messages/chat-message";
+import * as crypto from 'crypto';
 
 const baseStorageDir = path.resolve(__dirname + '../../../../messages');
+const baseFileStorageDir = path.resolve(__dirname + '../../../../files');
 
 
 function getStorageDir(wechatId: string, createDir: boolean) {
@@ -14,6 +16,36 @@ function getStorageDir(wechatId: string, createDir: boolean) {
     return dir;
 }
 
+function getFileStorageDir(createDir: boolean) {
+    const dir = path.join(baseFileStorageDir, '');
+    if (createDir && !fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
+
+    return dir;
+}
+
+
+export let storeFile = function(content: Buffer) : string {
+    const dir = getFileStorageDir(true);
+
+    const fileId = crypto.randomBytes(16).toString("hex");
+    const filename = `${fileId}.file`;
+    fs.writeFileSync(path.join(dir, filename), content);
+
+    return fileId; 
+};
+
+export let retrieveFile = function(fileId: string) : Buffer {
+    const dir = getFileStorageDir(true);
+    const filePath = path.join(dir, `${fileId}.file`);
+
+    if(!fs.existsSync(filePath)){
+        return null;
+    }
+
+    return fs.readFileSync(filePath);
+};
 
 export let store = function(wechatId: string, messages : ChatMessage[]):void {
     const dir = getStorageDir(wechatId.replace(/@/, ''), true);

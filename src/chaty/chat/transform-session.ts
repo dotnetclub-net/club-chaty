@@ -4,25 +4,27 @@ import * as converter from "./converting/converter"
 import RawChatHistoryMessage from "./messages/raw-history-message";
 import { MessageType } from "wechaty-puppet";
 import ConvertedMessage from "./converting/converted-message";
+import ChatMessage from "./messages/chat-message";
+import { TextMessageContent } from "./messages/message-content";
+import * as ChatStore from './chat-store';
 
 const notice = {
     started: '已收到你的消息 [Grin]',
-    completed: '你的消息已在转换完成 [Smart]',
+    completed: '转换完成 [Smart]',
     notInChat: '你不是对话的参与者，请不要转发他人的对话 [Angry]'
 }
 
 
 interface ConvertState {
-    defered: boolean,
+    hasMissingItems: boolean,
     missingItems: any
 }
-
 
 
 export default class TransformSession {
 
     private _historyMessage : RawChatHistoryMessage;
-    private  _converted : ConvertedMessage[];
+    private  _converting : ConvertedMessage[];
     private _onCompleted : Function;
     private _createdTime : Date;
 
@@ -37,11 +39,11 @@ export default class TransformSession {
     }
 
     start() : void {
-        this._converted = converter.convertToMessageList(this._historyMessage.text);
+        this._converting = converter.convertToMessageList(this._historyMessage.text);
         const convertedState = this.getUpdatedState();
-        if(!convertedState.defered){
+        if(!convertedState.hasMissingItems){
             this.reply(notice.completed);
-            // todo: completed
+            this.convert();
             this._onCompleted();
             return;
         }
@@ -60,7 +62,7 @@ export default class TransformSession {
         if(message.type() === MessageType.Text){
             switch (message.text()){
                 case '直接转换':
-                    // todo: ignore remaining missing items
+                    this.convert();
                     return;
                 case '取消':
                     this._onCompleted();
@@ -74,7 +76,7 @@ export default class TransformSession {
 
         let acceptedAs : string = '';
         
-        const deferedMsgs = this._converted.filter(m => m.additionalMessageHanlder != null);
+        const deferedMsgs = this._converting.filter(m => m.additionalMessageHanlder != null);
         deferedMsgs.forEach(msg => {
             if(!acceptedAs && msg.additionalMessageHanlder.accept(message)){
                 acceptedAs = msg.additionalMessageHanlder.name;
@@ -82,17 +84,20 @@ export default class TransformSession {
             }
         });
 
+        const currentState = this.getUpdatedState();
+        if(!currentState.hasMissingItems){
+            this.convert();
+            return;
+        }
+
         if(!!acceptedAs){
-            const currentState = this.getUpdatedState();
-            if(currentState.defered){
-                let msg = `收到 1 个 ${acceptedAs}，还缺少：`;
-                for(const key in currentState.missingItems){
-                    const count = currentState.missingItems[key];
-                    msg += `${count} 个 ${key} <br />`;
-                }
-                msg += '请按顺序提供这些内容，如果不想提供，请回复“直接转换”或“取消”。';
-                this.reply(msg);
+            let msg = `收到 1 个 ${acceptedAs}，还缺少：`;
+            for(const key in currentState.missingItems){
+                const count = currentState.missingItems[key];
+                msg += `${count} 个 ${key} <br />`;
             }
+            msg += '请按顺序提供这些内容，如果不想提供，请回复“直接转换”或“取消”。';
+            this.reply(msg);
         }else{
             const msg = '请按顺序提供内容，如果不想提供，请回复“直接转换”或“取消”。';
             this.reply(msg);
@@ -110,6 +115,21 @@ export default class TransformSession {
         return timeElapsed > sessionExpire;
     }
 
+    private convert() : void{
+        const converted : ChatMessage[] = this._converting.map(msg => {
+            if(!msg.additionalMessageHanlder){
+                return msg.getConvertedMessage();
+            }else{
+                const skipped = ConvertedMessage.buildMetaMessage(msg.originalXMLObject);
+                skipped.content = new TextMessageContent(`[${msg.additionalMessageHanlder.name}]`);
+                return skipped;
+            }
+        });
+
+        ChatStore.store(this._historyMessage.fromId, converted);
+        this.reply(notice.completed);
+    }
+
     private reply(text) : void {
        BotManager.sendMessageToContact(
            this._historyMessage.toId,
@@ -118,7 +138,7 @@ export default class TransformSession {
     }
 
     private getUpdatedState() : ConvertState{
-        const deferedMsgs = this._converted.filter(m => m.additionalMessageHanlder != null);
+        const deferedMsgs = this._converting.filter(m => m.additionalMessageHanlder != null);
         const stat : any = {};
         deferedMsgs.forEach((cur)=> {
             const handlerName = cur.additionalMessageHanlder.name;
@@ -126,7 +146,7 @@ export default class TransformSession {
         });
 
         return {
-            defered: deferedMsgs.length > 0,
+            hasMissingItems: deferedMsgs.length > 0,
             missingItems: stat
         }
     }
