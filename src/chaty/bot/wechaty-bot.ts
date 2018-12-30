@@ -139,8 +139,12 @@ export class ChatyBot{
             login_time: this._loggedInUser ? this._loginTime : null
         };
     }
+
+    supportsDownloadAttachmentLocally(){
+        return  !!(this._bot && this._bot.puppet["cdnManager"]);
+    }
     
-    async downloadAttachment(cdnattachurl, aeskey, totallen): Promise<void> {
+    async downloadAttachment(cdnattachurl, aeskey, totallen): Promise<FileBox> {
         const cdnManager : any = this._bot.puppet["cdnManager"];
         const data = await cdnManager.downloadFile(
             cdnattachurl || '',
@@ -149,10 +153,7 @@ export class ChatyBot{
           );
           
         const date = new Date().getTime();
-        const file = FileBox.fromBase64(data.toString('base64'), `${date}.file`);
-        await file.toFile(file.name);
-          
-        console.log('Saving file to: ' + file.name);
+        return FileBox.fromBase64(data.toString('base64'), `${date}.file`);
     }
     
     async sendMessage(toId : string, text: string): Promise<void> {

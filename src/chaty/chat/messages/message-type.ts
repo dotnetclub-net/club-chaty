@@ -18,8 +18,7 @@ export enum MessageType {
 export enum HistoryMessageType {
     Unknown = 0,
     Text = 1,
-    // Emotion = 1,
-
+    
     Image = 2,
     Video = 4,
     Url = 5,
@@ -27,6 +26,5 @@ export enum HistoryMessageType {
     
     ChatHistory = 17,
 
-    // Audio = 888,
     // TinyVideo = 888,
 }

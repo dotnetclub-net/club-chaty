@@ -41,11 +41,11 @@ export class UrlChatMessageContent extends ChatMessageContent {
     }
 }
 
-export class ImageChatMessageContent extends ChatMessageContent {
+export class FileChatMessageContent extends ChatMessageContent {
     private _storageFileId: string;
     private _originalFileName: string;
-    constructor(storageFileId : string, originalFileName: string){
-        super(HistoryMessageType.Image);
+    constructor(storageFileId : string, originalFileName: string, messageType: HistoryMessageType){
+        super(messageType);
 
         this._storageFileId = storageFileId;
         this._originalFileName = originalFileName;

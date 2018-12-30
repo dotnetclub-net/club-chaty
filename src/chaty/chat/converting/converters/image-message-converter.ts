@@ -4,10 +4,10 @@ import { HistoryMessageType } from "../../messages/message-type";
 import { MessageType as WeChatyMessageType } from 'wechaty-puppet';
 import BaseConverter from "../base-converter";
 import ChatMessage from "../../messages/chat-message";
-import AdditionalMessageHanlder from '../additinal-message-handler'
+import { IUseFileMessage, FileAdditionalMessageHandler, AdditionalMessageHanlder } from '../additinal-message-handler'
 import { Message, FileBox } from "wechaty";
 import * as ChatStore from '../../chat-store';
-import { ImageChatMessageContent as ImageChatMessageContent } from "../../messages/message-content";
+import { FileChatMessageContent } from "../../messages/message-content";
 
 
 export class ImageMessageConverter extends BaseConverter {
@@ -31,7 +31,9 @@ export class ImageMessageConverter extends BaseConverter {
 }
 
 
-export class ImageMessage extends IntermediateMessage {
+export class ImageMessage 
+            extends IntermediateMessage 
+            implements IUseFileMessage {
     private _converted : ChatMessage;
     private _additionalImageHandler : AdditionalMessageHanlder;
 
@@ -44,59 +46,27 @@ export class ImageMessage extends IntermediateMessage {
             handlerName = '表情';
         }
         
-        this._additionalImageHandler = new ImageAdditionalMessageHandler(handlerName, this);
+        this._additionalImageHandler = new FileAdditionalMessageHandler(handlerName, this, [WeChatyMessageType.Image, WeChatyMessageType.Emoticon]);
     }
     
-    getConvertedMessage(): ChatMessage {
-        return this._converted;
+    getConvertedMessage(): Promise<ChatMessage> {
+        return Promise.resolve(this._converted);
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
         return this._additionalImageHandler;
     }
 
-    imageDownloaded(imageFile: FileBox) {
+    messagefileDownloaded(imageFile: FileBox) {
         this._additionalImageHandler = null;
 
         imageFile.toBuffer().then((buffer) => {
             const fileId = ChatStore.storeFile(buffer);
            
             const message = this.getMetaMessage();
-            message.content = new ImageChatMessageContent(fileId, imageFile.name);
+            message.content = new FileChatMessageContent(fileId, imageFile.name, HistoryMessageType.Image);
             
             this._converted = message;
         });
-    }
-}
-
-class ImageAdditionalMessageHandler implements AdditionalMessageHanlder {
-    private _accepting : boolean;
-    private _name : string;
-    private _convertingMessage: ImageMessage;
-
-    constructor(name: string, convertingMessage: ImageMessage) {
-        this._name = name;
-        this._convertingMessage = convertingMessage;
-    }
-
-    accept(message: Message) : boolean {
-        if(this._accepting){
-            return false;
-        }
-
-        this._accepting = true;
-        if(message.type() !== WeChatyMessageType.Image
-            && message.type() !== WeChatyMessageType.Emoticon){
-            return false;
-        }
-
-        message.toFileBox().then((fileBox) => {
-            this._convertingMessage.imageDownloaded(fileBox);
-        });
-        return true;
-    }
-    
-    get name(): string{
-        return this._name;
     }
 }

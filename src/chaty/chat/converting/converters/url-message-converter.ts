@@ -3,7 +3,7 @@ import IntermediateMessage from "../intermediate-message";
 import { HistoryMessageType } from "../../messages/message-type";
 import BaseConverter from "../base-converter";
 import ChatMessage from "../../messages/chat-message";
-import AdditionalMessageHanlder from '../additinal-message-handler'
+import { AdditionalMessageHanlder } from '../additinal-message-handler'
 import { UrlChatMessageContent } from "../../messages/message-content";
 
 
@@ -33,8 +33,8 @@ export class UrlMessage extends IntermediateMessage {
         this._converted = message;
     }
     
-    getConvertedMessage(): ChatMessage {
-        return this._converted;
+    getConvertedMessage(): Promise<ChatMessage> {
+        return Promise.resolve(this._converted);
     }
 
     get additionalMessageHanlder() : AdditionalMessageHanlder{

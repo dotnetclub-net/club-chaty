@@ -1,5 +1,5 @@
 import ChatMessage from "../messages/chat-message";
-import AdditionalMessageHanlder from "./additinal-message-handler";
+import { AdditionalMessageHanlder } from "./additinal-message-handler";
 
 
 export default abstract class IntermediateMessage {
@@ -8,7 +8,7 @@ export default abstract class IntermediateMessage {
         this._xmlObj = xmlObj;
     }
 
-    abstract getConvertedMessage() : ChatMessage;
+    abstract getConvertedMessage() : Promise<ChatMessage>;
     abstract get additionalMessageHanlder() : AdditionalMessageHanlder;
 
     get originalXMLObject(){

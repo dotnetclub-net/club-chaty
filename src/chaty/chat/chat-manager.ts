@@ -1,6 +1,6 @@
 import { MessageType } from 'wechaty-puppet';
 import { Message } from 'wechaty';
-import TransformSession from './transform-session';
+import ConversionSession from './conversion-session';
 import * as BotManager from "../bot/bot-manager"
 
 const notice = {
@@ -20,7 +20,7 @@ export let handleMessage = function(message: Message): void {
     try{
         const isHistoryMsg : boolean  = message.type() === MessageType.ChatHistory
         const sourceId : string = message.from().id;
-        let session : TransformSession = sessions[sourceId];
+        let session : ConversionSession = sessions[sourceId];
         const hasValidSession = !!session && !session.expired;
         
         if(hasValidSession && !isHistoryMsg){
@@ -29,7 +29,7 @@ export let handleMessage = function(message: Message): void {
         }
 
         if(isHistoryMsg){
-            session = new TransformSession(message, clearSession(message.from().id));
+            session = new ConversionSession(message, clearSession(message.from().id));
             sessions[sourceId] = session;
             session.start();
         }else{
