@@ -1,6 +1,6 @@
-import { ChatMessage } from "./chat-message";
 import * as fs from "fs";
 import * as path from "path";
+import ChatMessage from "./messages/chat-message";
 
 const baseStorageDir = path.resolve(__dirname + '../../../../messages');
 
