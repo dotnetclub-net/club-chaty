@@ -1,0 +1,69 @@
+
+.pull-left{
+    float:left;
+    width: 70%;
+}
+
+.pull-right{
+    float:right;
+    width:25%;
+}
+
+#status .status-label {
+    display: none;
+}
+
+#status.unknown .status-label.unknown{
+    color: gray;
+    display: inline-block;
+}
+
+#status.starting .status-label.starting,
+#status.started .status-label.started,
+#status.waitingforscan .status-label.waitingforscan{
+    color: yellowgreen;
+    display: inline-block;
+}
+
+#status.loggedin .status-label.loggedin{
+    color: green;
+    display: inline-block;
+}
+
+
+#status.stopping .status-label.stopping,
+#status.stopped .status-label.stopped{
+    color: yellow;
+    display: inline-block;
+}
+
+#status.starterror .status-label.starterror,
+#status.stoperror .status-label.stoperror{
+    color: red;
+    display: inline-block;
+}
+
+
+
+#actions .start,
+#actions .stop{
+    display: none;
+}
+
+#actions.unknown .start{
+    display:inline-block;
+}
+
+#actions.loggedin .stop{
+    display:inline-block;
+}
+
+
+#qrcode {
+    display: none;
+}
+
+#qrcode.waitingforscan {
+    display: block;
+}
+

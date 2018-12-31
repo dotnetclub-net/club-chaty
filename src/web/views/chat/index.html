@@ -1,35 +1,78 @@
 
-<script>
-    window.params = {
-        uid: '@model.uid',
-        chatId: '@model.chatId',
-    }
-</script>
+<head>
+    <link rel="stylesheet" type="text/css" href="/chat-index/page.css" />
+    <script>
+        window.params = {
+            uid: '@model.uid',
+            chatId: '@model.chatId',
+        }
+    </script>
+</head>
+<body>
+    <div id="chat-content">
 
-<div id="chat-content">
-
-</div>
-
+    </div>
+</body>
 <script id='chat-template-text' type="text/template">
     <p class="meta">
-        @@model._sourceName at @@model._sourceTime 
+        <span class="pull-left">@@model._sourceName</span>
+        <span class="pull-right">@@model._sourceTime</span>
     </p>
     <p class="content">
-        @@model._content._text
+        @@(model._content._text || '[未知消息]')
     </p>
 </script>
 
 <script id='chat-template-url' type="text/template">
     <p class="meta">
-        @@model._sourceName at @@model._sourceTime 
+            <span class="pull-left">@@model._sourceName</span>
+            <span class="pull-right">@@model._sourceTime</span>
     </p>
     <p class="content">
-        <a href="@@model._content._link">@@model._content._title</a>
+        <a class="link" href="@@model._content._link">
+            <span>@@model._content._title</span>
+            <span>@@model._content._description</span>
+        </a>
+    </p>
+</script>
+
+<script id='chat-template-image' type="text/template">
+    <p class="meta">
+            <span class="pull-left">@@model._sourceName</span>
+            <span class="pull-right">@@model._sourceTime</span>
+    </p>
+    <p class="content">
+        <img src="/chat/file/@@model._content._storageFileId" alt="@@model._content._originalFileName" />
+    </p>
+</script>
+
+<script id='chat-template-video' type="text/template">
+    <p class="meta">
+            <span class="pull-left">@@model._sourceName</span>
+            <span class="pull-right">@@model._sourceTime</span>
+    </p>
+    <p class="content">
+        <video width="320" height="240" controls>
+             <source src="/chat/file/@@model._content._storageFileId" type="video/mp4">
+            @@model._content._originalFileName
+        </video>
+    </p>
+</script>
+
+<script id='chat-template-attachment' type="text/template">
+    <p class="meta">
+            <span class="pull-left">@@model._sourceName</span>
+            <span class="pull-right">@@model._sourceTime</span>
+    </p>
+    <p class="content">
+        <a class="link" href="/chat/file/@@model._content._storageFileId">
+            @@model._content._originalFileName
+        </a>
     </p>
 </script>
 
 
 
 <script src="/common.js"></script>
-<script src="/vash.js"></script>
-<script src="/chat-index.js"></script>
+<script src="/chat-index/vash.js"></script>
+<script src="/chat-index/page.js"></script>

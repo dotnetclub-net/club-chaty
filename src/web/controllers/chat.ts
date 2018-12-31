@@ -29,9 +29,11 @@ export let pageDetail = (req: Request, res: Response) => {
 };
 
 export let downloadFile = (req: Request, res: Response) => {
-  const fildId: string = req.params.fileid;
+  const fileId: string = req.params.fileid;
   
-  res.end();
+  const file = ChatStore.retrieveFile(fileId);
+  res.set('Content-Type', 'application/octet-stream');
+  res.send(file);
 };
 
 

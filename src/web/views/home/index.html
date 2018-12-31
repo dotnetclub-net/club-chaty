@@ -1,7 +1,7 @@
 
 <head>
     <title>My Chats</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="/home-index/page.css" />
 </head>
 
 
@@ -22,7 +22,13 @@
 
 <div class="pull-right" id="bot-status">
     <div id="status">
-        当前状态：<span class="status-label">【】</span>
+        当前状态：
+        <span class="status-label unknown">未知</span>
+        <span class="status-label starting">启动中</span>
+        <span class="status-label loggedin">已登录</span>
+        <span class="status-label waitingforscan">请扫码</span>
+        <span class="status-label stopping stopped">停止中</span>
+        <span class="status-label starterror stoperror">错误</span>
     </div>
     <div id="actions">
         <button class="start">启动</button>
@@ -34,6 +40,6 @@
 
 
 <script src="/common.js"></script>
-<script src="/home-index.js"></script>
+<script src="/home-index/page.js"></script>
 
 
