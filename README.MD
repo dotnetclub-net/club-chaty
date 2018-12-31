@@ -15,6 +15,7 @@ dotnet club chaty 是帮助你导出这些聊天记录的利器：
 
 目前本项目处于比较早期的试验阶段，基底层是基于 [Wechaty](https://github.com/Chatie/wechaty) 提供的技术。
 
+由于解析“消息记录”类型的消息需要更高级的 API 支持，因此如果要运行并体验实际效果，你需要一个购买一个 [WeChaty Puppet PadChat](https://github.com/lijiarui/wechaty-puppet-padchat) 的 Token。
 
 体验步骤：
 
