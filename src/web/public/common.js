@@ -33,6 +33,18 @@
         StopError: 99
     };
 
+    chatyApp.messageType = {
+        Unknown : 0,
+        Text : 1,
+        
+        Image : 2,
+        Video : 4,
+        Url : 5,
+        Attachment : 8,
+        
+        ChatHistory : 17
+    };
+
 
     chatyApp.request = function (method, url, fn, fnFail) {
         var xhr = new XMLHttpRequest();

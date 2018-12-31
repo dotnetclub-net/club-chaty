@@ -10,7 +10,26 @@
 
 </div>
 
+<script id='chat-template-text' type="text/template">
+    <p class="meta">
+        @@model._sourceName at @@model._sourceTime 
+    </p>
+    <p class="content">
+        @@model._content._text
+    </p>
+</script>
+
+<script id='chat-template-url' type="text/template">
+    <p class="meta">
+        @@model._sourceName at @@model._sourceTime 
+    </p>
+    <p class="content">
+        <a href="@@model._content._link">@@model._content._title</a>
+    </p>
+</script>
+
 
 
 <script src="/common.js"></script>
+<script src="/vash.js"></script>
 <script src="/chat-index.js"></script>

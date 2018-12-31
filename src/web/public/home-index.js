@@ -88,6 +88,7 @@
                 var link = document.createElement('A');
                 link.innerHTML = chatId;
                 link.setAttribute('href', chatyApp.pages.showChatDetail + uid + '/' + chatId);
+                link.setAttribute('target', '_blank');
                 chatList.appendChild(link);
 
                 var li = document.createElement('LI');
