@@ -1,17 +1,17 @@
-import { ChatyBot, ChatyBotStatus } from "./wechaty-bot";
+import { ChatyBot, ChatyBotState, ChatyBotStatus } from "./wechaty-bot";
 import { FileBox } from "wechaty";
 
 
 let botInstance : ChatyBot = null;
 
 function isBotReady() : boolean {
-    return !!botInstance && !!(botInstance.getStatus().logged_in);
+    return !!botInstance && !!(botInstance.getStatus().status === ChatyBotStatus.LoggedIn);
 }
 
-export let getStatus = function() : ChatyBotStatus {
+export let getStatus = function() : ChatyBotState {
     if(!botInstance){
         return {
-            logged_in: false,
+            status: ChatyBotStatus.Unknown,
             account_id: null,
             login_time: null
         };
@@ -21,24 +21,29 @@ export let getStatus = function() : ChatyBotStatus {
 };
 
 export let start = function(callback: Function){
-    if(isBotReady()){
-        callback();
+    const curStatus = getStatus().status;
+
+    if(curStatus === ChatyBotStatus.WaitingForScan){
+        callback(botInstance.loginQRCode);
         return;
     }
 
-    // todo: pending
+    if(curStatus >= ChatyBotStatus.Starting){
+        callback();
+        return;
+    }
+    
     botInstance = new ChatyBot(callback);
 };
 
 export let stop = function(callback : Function){
-    // todo: pending
-
-    if(isBotReady()){
-        botInstance.stop(callback);
-        botInstance = null;
-    }else{
+    if(!isBotReady()){
         callback();
+        return;
     }
+    
+    botInstance.stop(callback);
+    botInstance = null;
 };
 
 export let sendMessageToContact = function(selfId: string, toId : string, text: string){

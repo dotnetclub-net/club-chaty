@@ -4,10 +4,6 @@ import config from '../../config'
 import { PuppetModuleName } from 'wechaty/dist/src/puppet-config';
 import { PuppetOptions } from 'wechaty-puppet';
 
-
-/**
- * Config wechaty, see: https://github.com/chatie/wechaty
- */
 const options = config();
 const puppet : PuppetModuleName =  options['wechaty-puppet-name'];
 const puppetOptions : PuppetOptions = options['wechaty-puppet-options'] || { };
@@ -15,16 +11,24 @@ const puppetOptions : PuppetOptions = options['wechaty-puppet-options'] || { };
 export class ChatyBot{
     private _bot : Wechaty;
     private _startCB : Function;
-    private _requireScanning : boolean;
+    private _qrToScan : String;
+    
     private _loggedInUser : Contact;
     private _loginTime : Date;
+    private _status : ChatyBotStatus;
 
     constructor(startCB: Function){
         this._startCB = startCB;
+        this._status = ChatyBotStatus.Unknown;
+
         this._start();
     }
 
     private _start() : void {
+        if(this._status >= ChatyBotStatus.Starting){
+            return;
+        }
+
         const bot = new Wechaty({
             name: 'dotnetclub-chaty',
             puppet,
@@ -39,36 +43,48 @@ export class ChatyBot{
         bot.on('logout',  onLogout);
         bot.on('message', onMessage);
         
+        this._status = ChatyBotStatus.Starting;
         bot.start()
-        .then(() => console.log('Bot 已启动'))
+        .then(() => {
+            this._status = ChatyBotStatus.Started;
+            console.log('Bot 已启动'); 
+        })
         .catch(e => {
+            this._status = ChatyBotStatus.StartError;
             console.error('启动 Bot 时发生错误')
             console.error(e);
         });
 
         function onScan (qrcode: string) {
-            self._requireScanning = true;
+            self._status = ChatyBotStatus.WaitingForScan;
 
             const qrcodeImageUrl = [
               'https://api.qrserver.com/v1/create-qr-code/?data=',
               encodeURIComponent(qrcode),
-            ].join('')
+            ].join('');
+            self._qrToScan = qrcodeImageUrl;
           
             console.log(`请扫描二维码以登录：${qrcode}`);
             process.nextTick(() => {self._startCB(qrcodeImageUrl);});
         }
           
         function onLogin (user: Contact) {
+            self._status = ChatyBotStatus.LoggedIn;
+
+            self._qrToScan = null;
             self._loginTime = new Date();
             self._loggedInUser = user;
 
             console.log(`${user} 已登录`);
-            if(!self._requireScanning){
+            if(!self._qrToScan){
                 process.nextTick(self._startCB);
             }
-          }
+        }
           
         function onLogout (user: Contact) {
+            this._status = ChatyBotStatus.Started;
+
+            self._qrToScan = null;
             self._loginTime = null;
             self._loggedInUser = null;
 
@@ -124,20 +140,30 @@ export class ChatyBot{
             return;
         }
 
+        this._qrToScan = null;
         this._bot.logout().then(() => {
+            this._status = ChatyBotStatus.Stopping;
             this._bot.stop().then(() => {
+                this._status = ChatyBotStatus.Stopped;
                 this._bot = null;
+
                 process.nextTick(callback);
+            }).catch(ex => {
+                this._status = ChatyBotStatus.StopError;
             });
         });
     }
 
-    getStatus(): ChatyBotStatus {
+    getStatus(): ChatyBotState {
         return {
-            logged_in: !!this._loggedInUser,
+            status: this._status,
             account_id: this._loggedInUser ? this._loggedInUser.id : null,
             login_time: this._loggedInUser ? this._loginTime : null
         };
+    }
+
+    get loginQRCode(): String {
+        return this._qrToScan; 
     }
 
     supportsDownloadAttachmentLocally(){
@@ -168,8 +194,24 @@ export class ChatyBot{
     }
 }
 
-export interface ChatyBotStatus {
-    logged_in: boolean;
+export interface ChatyBotState {
+    status: ChatyBotStatus;
     account_id: String;
     login_time: Date;
+}
+
+export enum ChatyBotStatus {
+    Unknown = 0,
+
+    Starting = 1,
+    Started = 2,
+    
+    WaitingForScan = 3,
+    LoggedIn = 4,
+
+    Stopping = 9,
+    Stopped = 10,
+
+    StartError = 77,
+    StopError = 99
 }
