@@ -27,18 +27,18 @@ function getFileStorageDir(createDir: boolean) {
 
 
 export let storeFile = function(content: Buffer) : string {
-    const dir = getFileStorageDir(true);
+    const fileBaseDir = getFileStorageDir(true);
 
     const fileId = crypto.randomBytes(16).toString("hex");
     const filename = `${fileId}.file`;
-    fs.writeFileSync(path.join(dir, filename), content);
+    fs.writeFileSync(path.join(fileBaseDir, filename), content);
 
     return fileId; 
 };
 
 export let retrieveFile = function(fileId: string) : Buffer {
-    const dir = getFileStorageDir(true);
-    const filePath = path.join(dir, `${fileId}.file`);
+    const fileBaseDir = getFileStorageDir(true);
+    const filePath = path.join(fileBaseDir, `${fileId}.file`);
 
     if(!fs.existsSync(filePath)){
         return null;
@@ -48,29 +48,56 @@ export let retrieveFile = function(fileId: string) : Buffer {
 };
 
 export let store = function(wechatId: string, messages : ChatMessage[]): string {
-    const dir = getStorageDir(wechatId.replace(/@/, ''), true);
+    const userDir = getStorageDir(wechatId.replace(/@/, ''), true);
 
     const chatId = new Date().getTime().toString();
     const filename = `${chatId}.json`;
     var jsonContent = JSON.stringify(messages);
-    fs.writeFileSync(path.join(dir, filename), jsonContent); 
+    fs.writeFileSync(path.join(userDir, filename), jsonContent); 
 
     return chatId;
 };
 
-export let list = function(wechatId: string): ChatMessage[] {
-    const dir = getStorageDir(wechatId.replace(/@/, ''), false);
-    if(!fs.existsSync(dir)){
+export let listUid = function(): string[] {
+    const baseDir = getStorageDir('', false);
+    if(!fs.existsSync(baseDir)){
         return [];
     }
 
-    const files = fs.readdirSync(dir)
-        .filter(dirent => dirent.endsWith('.json'))
-        .sort((a, b) => parseInt(getNameWithoutExtension(b))- parseInt(getNameWithoutExtension(a)));
+    return fs.readdirSync(baseDir)
+        .filter(name => fs.lstatSync(path.join(baseDir, name)).isDirectory())
+        .sort();
+};
 
-    return files.map(file => fs.readFileSync(path.join(dir, file), 'utf-8'))
-                .map(json => JSON.parse(json))
-                .map(obj => <ChatMessage>obj);
+export let listChats = function(wechatId: string): string[] {
+    const userDir = getStorageDir(wechatId.replace(/@/, ''), false);
+    if(!fs.existsSync(userDir)){
+        return [];
+    }
+
+    return fs.readdirSync(userDir)
+        .filter(file => file.endsWith('.json'))
+        .map(file => getNameWithoutExtension(file))
+        .sort((a, b) => parseInt(b)- parseInt(a));
+};
+
+export let listChatsWithDetail = function(wechatId: string): string[] {
+    const userDir = getStorageDir(wechatId.replace(/@/, ''), false);
+    return listChats(wechatId)
+        .map(file => fs.readFileSync(path.join(userDir, file), 'utf-8'))
+        .map(json => JSON.parse(json));
+};
+
+export let getChatDetail = function(wechatId: string, chatId: string): any {
+    wechatId = wechatId.replace(/@/, '');
+    const userDir = getStorageDir(wechatId, false);
+    const chatFile = path.join(userDir, `${chatId}.json`);
+    if(!fs.existsSync(chatFile)){
+        return null;
+    }
+
+    const content = fs.readFileSync(chatFile, 'utf-8');
+    return JSON.parse(content);
 };
 
 function getNameWithoutExtension(filename: string) : string {

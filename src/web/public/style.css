@@ -1,0 +1,61 @@
+
+.pull-left{
+    float:left;
+    width: 70%;
+}
+
+.pull-right{
+    float:right;
+    width:25%;
+}
+
+
+
+#status.unknown .status-label{
+    color: gray;
+}
+
+#status.starting .status-label,
+#status.started .status-label,
+#status.waitingforscan .status-label{
+    color: yellowgreen;
+}
+
+#status.loggedin .status-label{
+    color: green;
+}
+
+
+#status.stopping .status-label,
+#status.stopped .status-label{
+    color: yellow;
+}
+
+#status.starterror .status-label,
+#status.stoperror .status-label{
+    color: red;
+}
+
+
+
+#actions .start,
+#actions .stop{
+    display: none;
+}
+
+#actions.unknown .start{
+    display:inline-block;
+}
+
+#actions.loggedin .stop{
+    display:inline-block;
+}
+
+
+#qrcode {
+    display: none;
+}
+
+#qrcode.waitingforscan {
+    display: block;
+}

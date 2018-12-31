@@ -8,7 +8,6 @@ import * as timeout from 'connect-timeout';
 import * as homeController from "./controllers/home";
 import * as botController from "./controllers/bot";
 import * as chatController from "./controllers/chat";
-import * as userController from "./controllers/user";
 
 const app = express();
 
@@ -23,17 +22,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(timeout('20s'));
 
 
-app.get("/", homeController.index);
+app.get("/", homeController.pageHome);
+
 
 app.get("/bot/status", botController.status);
 app.post("/bot/start", botController.start);
 app.post("/bot/stop", botController.stop);
-app.post("/bot/file", botController.file);
 
-app.get("/chat/list/:uid", chatController.listByUid);
-app.get("/chat/show/:uid/:chatid", chatController.detail);
 
-app.post("/user/bind", userController.bind);
+app.get("/chat/list", chatController.listUids);
+app.get("/chat/list/:uid", chatController.listChats);
+app.get("/chat/detail/:uid/:chatid", chatController.detail);
+app.get("/chat/file/:fileid", chatController.downloadFile);
+app.get("/chat/show/:uid/:chatid", chatController.pageDetail);
+
 
 
 export default app;

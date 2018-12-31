@@ -13,7 +13,8 @@ export let getStatus = function() : ChatyBotState {
         return {
             status: ChatyBotStatus.Unknown,
             account_id: null,
-            login_time: null
+            login_time: null,
+            login_qrcode: null
         };
     }
 

@@ -158,7 +158,8 @@ export class ChatyBot{
         return {
             status: this._status,
             account_id: this._loggedInUser ? this._loggedInUser.id : null,
-            login_time: this._loggedInUser ? this._loginTime : null
+            login_time: this._loggedInUser ? this._loginTime : null,
+            login_qrcode: this._loggedInUser ? null : this._qrToScan
         };
     }
 
@@ -196,6 +197,7 @@ export class ChatyBot{
 
 export interface ChatyBotState {
     status: ChatyBotStatus;
+    login_qrcode: String;
     account_id: String;
     login_time: Date;
 }
