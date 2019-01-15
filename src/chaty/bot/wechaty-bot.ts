@@ -167,16 +167,17 @@ export class ChatyBot{
         return this._qrToScan; 
     }
 
-    supportsDownloadAttachmentLocally(){
+    supportsDownloadingDirectly(){
         return  !!(this._bot && this._bot.puppet["cdnManager"]);
     }
     
-    async downloadAttachment(cdnattachurl, aeskey, totallen): Promise<FileBox> {
+    async downloadFile(fileId: string, aeskey: string, totallen: number, fileType: CDNFileType): Promise<FileBox> {
         const cdnManager : any = this._bot.puppet["cdnManager"];
         const data = await cdnManager.downloadFile(
-            cdnattachurl || '',
+            fileId || '',
             aeskey || '',
             totallen || 0,
+            fileType
           );
           
         const date = new Date().getTime();
@@ -216,4 +217,12 @@ export enum ChatyBotStatus {
 
     StartError = 77,
     StopError = 99
+}
+
+
+export enum CDNFileType {
+    IMAGE = 1,
+    VIDEO_THUMBNAIL = 3,
+    VIDEO = 4,
+    ATTACHMENT = 5,
 }

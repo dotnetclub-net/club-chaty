@@ -4779,10 +4779,10 @@ wechaty-puppet-padchat@^0.19.3:
     ws "^6.0.0"
     xml2js "^0.4.19"
 
-wechaty-puppet-padpro@^0.0.28:
-  version "0.0.28"
-  resolved "https://registry.yarnpkg.com/wechaty-puppet-padpro/-/wechaty-puppet-padpro-0.0.28.tgz#694aefc38cd250469d65e834499120e51075f297"
-  integrity sha512-cebldHluS8psLLsj99qDJOMzvQ2qFCbp52+9Ddgoa5ulGoM+Uc3mIgIhesCdSpWwHitHaFgah/Lk9SPO+mjdbg==
+wechaty-puppet-padpro@^0.0.36:
+  version "0.0.36"
+  resolved "https://registry.yarnpkg.com/wechaty-puppet-padpro/-/wechaty-puppet-padpro-0.0.36.tgz#c0bf3c6381f2b91063b03a988f97664a636e7d38"
+  integrity sha512-nNm2CDvhqgAT5K1iu6NwAcl6/eyrNtfTjYtMbnOSTnvhDNZndwLzzJF1Ui8g7colQWZ29vWgYEYomAljdd/igA==
   dependencies:
     "@babel/runtime" "7.2.0"
     array-flatten "^2.1.1"

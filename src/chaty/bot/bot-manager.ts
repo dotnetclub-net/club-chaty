@@ -1,4 +1,4 @@
-import { ChatyBot, ChatyBotState, ChatyBotStatus } from "./wechaty-bot";
+import { ChatyBot, ChatyBotState, ChatyBotStatus, CDNFileType } from "./wechaty-bot";
 import { FileBox } from "wechaty";
 
 
@@ -63,16 +63,17 @@ export let sendMessageToContact = function(selfId: string, toId : string, text: 
 export interface CdnDownloadableFile {
     attachmentCdnUrl: string,
     aesKey: string,
-    totalLength: string
+    totalLength: number,
+    fileType: CDNFileType
 }
 
-export let supportsDownloadAttachmentLocally = function(){
-    return isBotReady() && botInstance.supportsDownloadAttachmentLocally();
+export let supportsDownloadingDirectly = function(){
+    return isBotReady() && botInstance.supportsDownloadingDirectly();
 };
 
 export let downloadFile = function(payload: CdnDownloadableFile) : Promise<FileBox> {
-    if(supportsDownloadAttachmentLocally()){
-        return botInstance.downloadAttachment(payload.attachmentCdnUrl, payload.aesKey, payload.totalLength);
+    if(supportsDownloadingDirectly()){
+        return botInstance.downloadFile(payload.attachmentCdnUrl, payload.aesKey, payload.totalLength, payload.fileType);
     }else{
         return Promise.reject('当前状态无法下载文件：未登录，或者不支持直接下载。');
     }

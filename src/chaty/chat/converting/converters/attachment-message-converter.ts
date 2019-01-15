@@ -9,6 +9,7 @@ import * as ChatStore from '../../chat-store';
 import { FileChatMessageContent } from "../../messages/message-content";
 import * as BotManager from "../../../bot/bot-manager"
 import { MessageType as WeChatyMessageType } from "wechaty-puppet";
+import { CDNFileType } from "../../../bot/wechaty-bot";
 
 export class AttachmentMessageConverter extends BaseConverter {
     supportsType(type: HistoryMessageType, parsedXMLObj: any): boolean {
@@ -33,11 +34,12 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
     }
 
     async getConvertedMessage(): Promise<ChatMessage> {
-        if(!this._converted && BotManager.supportsDownloadAttachmentLocally()){
+        if(!this._converted && BotManager.supportsDownloadingDirectly()){
             const file = await BotManager.downloadFile({
                 attachmentCdnUrl: this._xmlObj.cdndataurl,
                 aesKey: this._xmlObj.cdndatakey,
-                totalLength: this._xmlObj.datasize
+                totalLength: parseInt(this._xmlObj.datasize),
+                fileType: CDNFileType.ATTACHMENT
             });
             const buffer = await file.toBuffer();
             const fileId = ChatStore.storeFile(buffer);
@@ -51,7 +53,7 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return BotManager.supportsDownloadAttachmentLocally() ? null : this._additionalMsgHandler;
+        return BotManager.supportsDownloadingDirectly() ? null : this._additionalMsgHandler;
     }
 
     messagefileDownloaded(messageFile: FileBox): void {
