@@ -40,8 +40,23 @@ function parseXMLToMsgCollection(msgText): any {
     const xmlOptions = { attrNodeName: '@', attributeNamePrefix: '', ignoreAttributes: false };
     const msgObj = xmlParser.parse(msgText, xmlOptions);
 
-    const recordListXmlText = msgObj.msg.appmsg.recorditem;
+    let recordListXmlText = msgObj.msg.appmsg.recorditem.replace(/^\s+/, '');
+    if (recordListXmlText.startsWith('&lt;')){
+        recordListXmlText = unescape(recordListXmlText);
+    }
     return xmlParser.parse(recordListXmlText, xmlOptions);
+
+
+    function unescape(text){
+        return text.replace(/&apos;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&gt;/g, '>')
+            .replace(/&lt;/g, '<')
+            .replace(/&amp;/g, '&')
+            .replace(/&amp;/g, '&')
+            .replace(/&#x20;/g, ' ')
+            .replace(/&#x0A;/g, '\n');
+    }
 }
 
 
