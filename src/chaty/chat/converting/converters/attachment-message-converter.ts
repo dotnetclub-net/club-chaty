@@ -36,7 +36,7 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
     async getConvertedMessage(): Promise<ChatMessage> {
         if(!this._converted && BotManager.supportsDownloadingDirectly()){
             const file = await BotManager.downloadFile({
-                attachmentCdnUrl: this._xmlObj.cdndataurl,
+                cdnFileId: this._xmlObj.cdndataurl,
                 aesKey: this._xmlObj.cdndatakey,
                 totalLength: parseInt(this._xmlObj.datasize),
                 fileType: CDNFileType.ATTACHMENT

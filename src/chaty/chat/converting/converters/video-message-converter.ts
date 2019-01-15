@@ -5,8 +5,10 @@ import ChatMessage from "../../messages/chat-message";
 import {AdditionalMessageHanlder, FileAdditionalMessageHandler, IUseFileMessage } from '../additinal-message-handler'
 import { FileBox } from "wechaty";
 import * as ChatStore from '../../chat-store';
-import { FileChatMessageContent, TextChatMessageContent } from "../../messages/message-content";
+import { FileChatMessageContent } from "../../messages/message-content";
 import { MessageType as WeChatyMessageType } from "wechaty-puppet";
+import * as BotManager from "../../../bot/bot-manager"
+import { CDNFileType } from "../../../bot/wechaty-bot";
 
 export class VideoMessageConverter extends BaseConverter {
     supportsType(type: HistoryMessageType, parsedXMLObj: any): boolean {
@@ -30,12 +32,27 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
         this._additionalMsgHandler = new FileAdditionalMessageHandler('视频', this, [WeChatyMessageType.Video]);
     }
     
-    getConvertedMessage(): Promise<ChatMessage> {
-        return Promise.resolve(this._converted);
+    async getConvertedMessage(): Promise<ChatMessage> {
+        if (!this._converted && BotManager.supportsDownloadingDirectly()) {
+            const file = await BotManager.downloadFile({
+                cdnFileId: this._xmlObj.cdndataurl,
+                aesKey: this._xmlObj.cdndatakey,
+                totalLength: parseInt(this._xmlObj.datasize),
+                fileType: CDNFileType.VIDEO
+            });
+            const buffer = await file.toBuffer();
+            const fileId = ChatStore.storeFile(buffer);
+
+            const message = this.getMetaMessage();
+            message.content = new FileChatMessageContent(fileId, file.name, HistoryMessageType.Video);
+            this._converted = message;
+        }
+
+        return this._converted;
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return this._additionalMsgHandler;
+        return BotManager.supportsDownloadingDirectly() ? null : this._additionalMsgHandler;
     }
 
     messagefileDownloaded(messageFile: FileBox): void {
