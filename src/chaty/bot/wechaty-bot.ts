@@ -76,9 +76,7 @@ export class ChatyBot{
             self._loggedInUser = user;
 
             console.log(`${user} 已登录`);
-            if(!self._qrToScan){
-                process.nextTick(self._startCB);
-            }
+            process.nextTick(self._startCB);
         }
           
         function onLogout (user: Contact) {
@@ -163,6 +161,17 @@ export class ChatyBot{
         };
     }
 
+    async getInfo() : Promise<ChatyBotInfo> {
+        const qrcode : string = await this._bot.puppet.contactSelfQrcode();
+
+        return {
+            qrCode: qrcode,
+            name: this._loggedInUser.name(),
+            weixin: this._loggedInUser.weixin(),
+            chatyId: this._loggedInUser.id
+        }
+    }
+
     get loginQRCode(): String {
         return this._qrToScan; 
     }
@@ -201,6 +210,13 @@ export interface ChatyBotState {
     login_qrcode: String;
     account_id: String;
     login_time: Date;
+}
+
+export interface ChatyBotInfo {
+    name: String;
+    qrCode: String;
+    weixin: String;
+    chatyId: String;
 }
 
 export enum ChatyBotStatus {

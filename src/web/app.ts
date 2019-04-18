@@ -26,6 +26,7 @@ app.get("/", homeController.pageHome);
 
 
 app.get("/bot/status", botController.status);
+app.get("/bot/info", botController.info);
 app.post("/bot/start", botController.start);
 app.post("/bot/stop", botController.stop);
 

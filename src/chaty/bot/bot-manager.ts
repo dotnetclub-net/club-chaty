@@ -1,4 +1,4 @@
-import { ChatyBot, ChatyBotState, ChatyBotStatus, CDNFileType } from "./wechaty-bot";
+import { ChatyBot, ChatyBotState, ChatyBotStatus, CDNFileType, ChatyBotInfo } from "./wechaty-bot";
 import { FileBox } from "wechaty";
 
 
@@ -19,6 +19,20 @@ export let getStatus = function() : ChatyBotState {
     }
 
     return botInstance.getStatus();
+};
+
+export let getBotInfo = function() : Promise<ChatyBotInfo> {
+    const botStatus = getStatus();
+    if(botStatus.status !== ChatyBotStatus.LoggedIn){
+      return Promise.resolve({
+            qrCode: null,
+            name: null,
+            weixin: null,
+            chatyId: null
+        });
+    }
+
+    return botInstance.getInfo();
 };
 
 export let start = function(callback: Function){

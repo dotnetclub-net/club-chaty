@@ -6,6 +6,10 @@ export let status = (req: Request, res: Response) => {
   res.json(status);
 };
 
+export let info = (req: Request, res: Response) => {
+  BotManager.getBotInfo().then(info => res.json(info));
+};
+
 export let start = (req: Request, res: Response) => {
   BotManager.start((qrcodeUrl) => {
     if(res.finished){ return; }
