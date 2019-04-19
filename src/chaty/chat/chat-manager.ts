@@ -2,6 +2,7 @@ import { MessageType } from 'wechaty-puppet';
 import { Message } from 'wechaty';
 import ConversionSession from './conversion-session';
 import * as BotManager from "../bot/bot-manager"
+import * as PairManager from "../bot/pair-manager"
 
 const notice = {
     notHistory: '请转发消息记录类型的消息',
@@ -24,6 +25,11 @@ export let handleMessage = function(message: Message): void {
         const hasValidSession = !!session && !session.expired;
         
         if(hasValidSession && !isHistoryMsg){
+            if(message.type() === MessageType.Text && 
+                PairManager.tryHandleGenerateCodeMessage(message.to().id, message.from().id, message.text())){
+                return;
+            }
+
             session.newMessageArrived(message);
             return;
         }

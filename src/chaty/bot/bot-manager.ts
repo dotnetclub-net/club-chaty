@@ -1,5 +1,6 @@
 import { ChatyBot, ChatyBotState, ChatyBotStatus, CDNFileType, ChatyBotInfo } from "./wechaty-bot";
 import { FileBox } from "wechaty";
+import * as PairManager from "./pair-manager";
 
 
 let botInstance : ChatyBot = null;
@@ -93,6 +94,33 @@ export let downloadFile = function(payload: CdnDownloadableFile) : Promise<FileB
     }
 };
 
+export let verifyPair = function(code : string) : PairManager.Peer {
+    const defaultPair = {
+        id: null,
+        name: null,
+        weixin: null
+    };
+    if(!code){
+        return defaultPair;
+    }
+
+    const verified : string = PairManager.verifyPairCode(code);
+
+    if(!verified){
+        return defaultPair;
+    }
+
+    const contact = botInstance.loadContact(verified);
+    if(!contact || !contact.friend()){
+        return defaultPair;
+    }
+
+    return {
+        id: verified,
+        name: contact.name(),
+        weixin: contact.weixin()
+    };
+};
 
 
 // todo: support video?   : padchat: true, padpro: false

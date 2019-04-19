@@ -8,6 +8,7 @@ import * as timeout from 'connect-timeout';
 import * as homeController from "./controllers/home";
 import * as botController from "./controllers/bot";
 import * as chatController from "./controllers/chat";
+import * as pairController from "./controllers/pair";
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.set('view engine', 'html');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(timeout('20s'));
+app.use(timeout('30s'));
 
 
 app.get("/", homeController.pageHome);
@@ -37,6 +38,7 @@ app.get("/chat/detail/:uid/:chatid", chatController.detail);
 app.get("/chat/file/:fileid", chatController.downloadFile);
 app.get("/chat/show/:uid/:chatid", chatController.pageDetail);
 
+app.post("/bot/pair", pairController.verify);
 
 
 export default app;

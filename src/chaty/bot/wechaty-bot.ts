@@ -1,5 +1,6 @@
-import { Contact, Message, Wechaty, FileBox } from 'wechaty'
+import { Contact, Message, Wechaty, FileBox, Friendship } from 'wechaty'
 import * as ChatManager from '../chat/chat-manager'
+import * as PairManager from './pair-manager'
 import config from '../../config'
 import { PuppetModuleName } from 'wechaty/dist/src/puppet-config';
 import { PuppetOptions } from 'wechaty-puppet';
@@ -42,6 +43,7 @@ export class ChatyBot{
         bot.on('login', onLogin);
         bot.on('logout',  onLogout);
         bot.on('message', onMessage);
+        bot.on('friendship', onFriendship);
         
         this._status = ChatyBotStatus.Starting;
         bot.start()
@@ -131,6 +133,20 @@ export class ChatyBot{
 
             return false;
         }
+
+        async function onFriendship(friendship : Friendship) {
+            try {
+              if(friendship.type() === Friendship.Type.Receive) {
+                // 还可以用 friendship.hello() 验证
+                await friendship.accept();
+                console.log(`添加了新的好友 ${friendship.contact().name()}`);
+                
+                PairManager.welcomeAndSendCode(self._loggedInUser.id, friendship.contact());
+              }          
+            } catch (e) {
+              console.error(e)
+            }
+          }
     }
 
     stop(callback : Function) {
@@ -139,8 +155,9 @@ export class ChatyBot{
         }
 
         this._qrToScan = null;
+        this._status = ChatyBotStatus.Stopping;
+        
         this._bot.logout().then(() => {
-            this._status = ChatyBotStatus.Stopping;
             this._bot.stop().then(() => {
                 this._status = ChatyBotStatus.Stopped;
                 this._bot = null;
@@ -162,6 +179,15 @@ export class ChatyBot{
     }
 
     async getInfo() : Promise<ChatyBotInfo> {
+        if(!this._loggedInUser){
+            return {
+                qrCode: null,
+                name: null,
+                weixin: null,
+                chatyId: null,
+            };
+        }
+
         const qrcode : string = await this._bot.puppet.contactSelfQrcode();
 
         return {
@@ -181,6 +207,11 @@ export class ChatyBot{
     }
     
     async downloadFile(fileId: string, aeskey: string, totallen: number, fileType: CDNFileType): Promise<FileBox> {
+        if(!this._loggedInUser){
+            console.warn(`已退出登录，无法下载文件 ${fileId}`);
+            return Promise.reject("已退出登录，无法下载");
+        }
+
         const cdnManager : any = this._bot.puppet["cdnManager"];
         const data = await cdnManager.downloadFile(
             fileId || '',
@@ -194,14 +225,32 @@ export class ChatyBot{
     }
     
     async sendMessage(toId : string, text: string): Promise<void> {
+        if(!this._loggedInUser){
+            console.warn(`已退出登录，无法回复 ${toId}：${text}`);
+            return;
+        }
+
         console.log(`正在回复 ${toId}：${text}`);
 
         if(toId === this._loggedInUser.id){
             return;
         }
 
-        const contact = this._bot.Contact.load(toId)
+        const contact = this.loadContact(toId);
+        if(contact == null || !contact.friend()){
+            return;
+        }
+
         await contact.say(text);
+    }
+
+    loadContact(id: string): Contact{
+        if(!this._loggedInUser){
+            console.warn(`已退出登录，无法加载联系人 ${id}`);
+            return null;
+        }
+
+        return this._bot.Contact.load(id);
     }
 }
 
