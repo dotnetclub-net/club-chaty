@@ -6,13 +6,13 @@
       "sourceMap": true
     },
     "files": [
-      "./node_modules/@types/node/index.d.ts",
+      "./node_modules/@types/node/ts3.2/index.d.ts",
       "./node_modules/@types/express/index.d.ts"
     ],
     "include": [
       "src/**/*.ts"
     ],
     "exclude": [
-      "node_modules"
+      "./node_modules"
     ]
   }

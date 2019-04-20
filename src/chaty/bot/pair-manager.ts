@@ -43,13 +43,13 @@ export function verifyPairCode(code: string) : string {
 }
 
 function generateCode(contactId : string) : string {
-    const existingPairing : PeerPair = pairing[contactId]
+    const existingPairing : PeerPair = pairing[contactId];
     const now = new Date().getTime();
     const duration = 5 * 60 * 1000;
 
     process.nextTick(cleanup);
 
-    if(!existingPairing || existingPairing.expiry < now){
+    if(!!existingPairing && existingPairing.expiry < now){
         existingPairing.expiry = now + duration;
         return existingPairing.code;
     }else{

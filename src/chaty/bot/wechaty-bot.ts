@@ -48,7 +48,9 @@ export class ChatyBot{
         this._status = ChatyBotStatus.Starting;
         bot.start()
         .then(() => {
-            this._status = ChatyBotStatus.Started;
+            if(this._status < ChatyBotStatus.Started){
+                this._status = ChatyBotStatus.Started;
+            }
             console.log('Bot 已启动'); 
         })
         .catch(e => {

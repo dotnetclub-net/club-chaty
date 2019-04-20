@@ -24,12 +24,12 @@ export let handleMessage = function(message: Message): void {
         let session : ConversionSession = sessions[sourceId];
         const hasValidSession = !!session && !session.expired;
         
-        if(hasValidSession && !isHistoryMsg){
-            if(message.type() === MessageType.Text && 
-                PairManager.tryHandleGenerateCodeMessage(message.to().id, message.from().id, message.text())){
-                return;
-            }
+        if(message.type() === MessageType.Text && 
+            PairManager.tryHandleGenerateCodeMessage(message.to().id, message.from().id, message.text())){
+            return;
+        }
 
+        if(hasValidSession && !isHistoryMsg){
             session.newMessageArrived(message);
             return;
         }
@@ -51,9 +51,12 @@ export let handleMessage = function(message: Message): void {
     }catch(err){
         console.warn('消息处理出错：');
         console.warn(err);
-        process.nextTick(() => {
-            reply(message, notice.error);
-        });
+
+        try{
+            process.nextTick(() => {
+                reply(message, notice.error);
+            });
+        }catch(x){ }
     }
 
     function reply(msg: Message, text: string){
