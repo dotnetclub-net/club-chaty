@@ -16,8 +16,8 @@
     "express": "^4.16.4",
     "fast-xml-parser": "^3.12.10",
     "vash": "^0.12.6",
-    "wechaty": "^0.25.9",
-    "wechaty-puppet-padpro": "^0.0.57"
+    "wechaty": "^0.26.0",
+    "wechaty-puppet-padpro": "^0.2.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.8",

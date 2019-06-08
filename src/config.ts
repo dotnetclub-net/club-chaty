@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 export default function() : any {
-    const env : String = process.env.NODE_ENV || 'production';
+    const env : String = process.env.NODE_ENV || 'development';
     const configPath = path.resolve(__dirname, '../config', `config.json`);
     const envConfigPath = path.resolve(__dirname, '../config', `config.${env}.json`);
     
