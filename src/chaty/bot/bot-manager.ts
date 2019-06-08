@@ -111,7 +111,7 @@ export let verifyPair = function(code : string) : PairManager.Peer {
     }
 
     const contact = botInstance.loadContact(verified);
-    if(!contact || !contact.friend()){
+    if(!contact || (!contact.friend() && !contact.self())){
         return defaultPair;
     }
 
