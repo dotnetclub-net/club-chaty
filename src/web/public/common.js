@@ -1,6 +1,7 @@
 (function () {
 
     var chatyApp = {};
+    var noCredential = false;
 
     chatyApp.apis = {
         getStatus: "/bot/status",
@@ -47,19 +48,38 @@
 
 
     chatyApp.request = function (method, url, fn, fnFail) {
+        if(noCredential){
+            return;
+        }
+
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (this.readyState === 4) {
                 if (this.status >= 200 && this.status <= 399) {
-                    fn.apply(this, [this.responseText]);
+                    fn && fn.apply(this, [this.responseText]);
                 } else {
-                    fnFail.apply(this);
+                    if(this.status === 401){
+                        noCredential = true;
+                        var cred = prompt('请输入凭据（格式 username:passowrd）：');
+                        if(cred){
+                            window.sessionStorage.setItem('chaty-credential', cred);
+                            location.reload();
+                            return;
+                        }
+                    }
+                    
+                    fnFail && fnFail.apply(this);
                 }
             }
         };
 
         xhr.onerror = xhr.onabort = fnFail;
         xhr.open(method, url, true);
+
+        var storedCred = window.sessionStorage.getItem('chaty-credential');
+        if(storedCred){
+            xhr.setRequestHeader('Authorization', 'Basic ' + btoa(storedCred));
+        }
         xhr.send();
     };
 

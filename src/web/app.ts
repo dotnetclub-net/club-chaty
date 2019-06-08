@@ -3,6 +3,7 @@ import * as bodyParser from "body-parser";
 import * as path from "path";
 import * as vash from "vash";
 import * as timeout from 'connect-timeout';
+import auth from "./auth";
 
 // Controllers (route handlers)
 import * as homeController from "./controllers/home";
@@ -16,6 +17,8 @@ const app = express();
 app.set("port", process.env.PORT || 3000);
 app.set("views", path.join(__dirname, "views"));
 app.engine('html', vash.__express);
+
+app.use(auth(  req => req.url.startsWith('/bot/') || (req.url.startsWith('/chat/') && !req.url.startsWith('/chat/show/') && !req.url.startsWith('/chat/file/')) ));
 app.set('view engine', 'html');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());

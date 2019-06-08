@@ -86,4 +86,5 @@ data/
 dist/
 config/config.development.json
 config/config.production.json
+config/users.json
 src/web/public/chat-index/vash.js
