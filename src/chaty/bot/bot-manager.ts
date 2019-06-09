@@ -53,7 +53,7 @@ export let start = function(callback: Function){
 };
 
 export let stop = function(callback : Function){
-    if(!isBotReady()){
+    if(!botInstance){
         callback();
         return;
     }
@@ -64,12 +64,14 @@ export let stop = function(callback : Function){
 
 export let sendMessageToContact = function(selfId: string, toId : string, text: string){
     if(!isBotReady()){
-        throw new Error(`无法回复 ${toId}，因为当前还没有登录微信。`); 
+        console.warn(`无法回复 ${toId}，因为当前还没有登录微信。`);
+        return;
     }
     
     const status = getStatus();
     if(status.account_id !== selfId){
-        throw new Error(`无法回复 ${toId}，因为当前登录的微信用户不是 ${selfId}，当前登录的是 ${status.account_id}。`);
+        console.warn(`无法回复 ${toId}，因为当前登录的微信用户不是 ${selfId}，当前登录的是 ${status.account_id}。`);
+        return;
     }
 
     botInstance.sendMessage(toId, text);
@@ -101,24 +103,27 @@ export let verifyPair = function(code : string) : PairManager.Peer {
         weixin: null
     };
     if(!code){
+        console.warn(`没有提供验证码 ${code}`);
         return defaultPair;
     }
 
     const verified : string = PairManager.verifyPairCode(code);
 
     if(!verified){
+        console.warn(`不存在这样的验证码 ${code}`);
         return defaultPair;
     }
 
     const contact = botInstance.loadContact(verified);
-    if(!contact || (!contact.friend() && !contact.self())){
+    if(!!contact && contact.self()){
+        console.warn('不能验证机器人账号自己');
         return defaultPair;
     }
 
     return {
         id: verified,
-        name: contact.name(),
-        weixin: contact.weixin()
+        name: !!contact ? contact.name() : null,
+        weixin: !!contact ? contact.weixin() : null
     };
 };
 

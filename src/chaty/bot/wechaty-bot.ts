@@ -235,18 +235,20 @@ export class ChatyBot{
     }
     
     async sendMessage(toId : string, text: string): Promise<void> {
+        const self = this;
+
         async function send(){
-            if(!this._loggedInUser){
+            if(!self._loggedInUser){
                 console.warn(`已退出登录，无法回复 ${toId}：${text}`);
                 return;
             }
     
-            if(toId === this._loggedInUser.id){
+            if(toId === self._loggedInUser.id){
                 console.warn(`已跳过发送消息给 ${toId}，不回复给机器人账号自己。消息内容：${text}`);
                 return;
             }
     
-            const contact = this.loadContact(toId);
+            const contact = self.loadContact(toId);
             if(contact == null || !contact.friend()){
                 console.warn(`已跳过发送消息给 ${toId}，找不到对应的联系人。消息内容：${text}`);
                 return;
