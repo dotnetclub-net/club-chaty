@@ -152,23 +152,31 @@ export class ChatyBot{
     }
 
     stop(callback : Function) {
+        const self = this;
         if(!this._bot){
             return;
         }
 
         this._qrToScan = null;
-        this._status = ChatyBotStatus.Stopping;
         
-        this._bot.logout().then(() => {
-            this._bot.stop().then(() => {
-                this._status = ChatyBotStatus.Stopped;
-                this._bot = null;
+        if(this._status == ChatyBotStatus.LoggedIn){
+            this._bot.logout().then(doStop);
+        }else{
+            doStop();
+        }
+
+        this._status = ChatyBotStatus.Stopping;        
+
+        function doStop(){
+            self._bot.stop().then(() => {
+                self._status = ChatyBotStatus.Stopped;
+                self._bot = null;
 
                 process.nextTick(callback);
             }).catch(ex => {
-                this._status = ChatyBotStatus.StopError;
+                self._status = ChatyBotStatus.StopError;
             });
-        });
+        }
     }
 
     getStatus(): ChatyBotState {

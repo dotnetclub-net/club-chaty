@@ -50,13 +50,12 @@
     display: none;
 }
 
-#actions.unknown .start{
+#actions.unknown .start,
+#actions.loggedin .stop,
+#actions.waitingforscan .stop{
     display:inline-block;
 }
 
-#actions.loggedin .stop{
-    display:inline-block;
-}
 
 
 #qrcode {
