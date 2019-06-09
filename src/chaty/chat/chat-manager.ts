@@ -40,9 +40,9 @@ export let handleMessage = function(message: Message): void {
             session.start();
         }else{
             clearSession(message.from().id)();
-            process.nextTick(() => {
-                reply(message, notice.notHistory);
-            });
+            // process.nextTick(() => {
+            //     reply(message, notice.notHistory);
+            // });
         }
 
         // todo: 自动加好友
@@ -52,11 +52,11 @@ export let handleMessage = function(message: Message): void {
         console.warn('消息处理出错：');
         console.warn(err);
 
-        try{
-            process.nextTick(() => {
-                reply(message, notice.error);
-            });
-        }catch(x){ }
+        // try{
+        //     process.nextTick(() => {
+        //         reply(message, notice.error);
+        //     });
+        // }catch(x){ }
     }
 
     function reply(msg: Message, text: string){
