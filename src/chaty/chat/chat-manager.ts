@@ -17,14 +17,24 @@ function clearSession(sourceId: string){
     };
 }
 
+function isHistoryAttachment(text){
+    var historyTypeIndex = text.indexOf('<type>19</type>');
+    var recordItemIndex = text.indexOf('<recorditem>');
+
+    return historyTypeIndex > -1 && recordItemIndex > -1 && recordItemIndex > historyTypeIndex;
+}
+
+
 export let handleMessage = function(message: Message): void {
     try{
-        const isHistoryMsg : boolean  = message.type() === MessageType.ChatHistory
+        const messageType : MessageType = message.type();
+        const isHistoryMsg : boolean  = (messageType === MessageType.ChatHistory || 
+                                        (messageType == MessageType.Attachment && isHistoryAttachment(message.text()) ));
         const sourceId : string = message.from().id;
         let session : ConversionSession = sessions[sourceId];
         const hasValidSession = !!session && !session.expired;
         
-        if(message.type() === MessageType.Text && 
+        if(messageType === MessageType.Text && 
             PairManager.tryHandleGenerateCodeMessage(message.to().id, message.from().id, message.text())){
             return;
         }
@@ -40,23 +50,20 @@ export let handleMessage = function(message: Message): void {
             session.start();
         }else{
             clearSession(message.from().id)();
+            console.warn(`已忽略 1 条来自 ${message.from().id} 的消息，因为不是历史记录类型。`);
             // process.nextTick(() => {
             //     reply(message, notice.notHistory);
             // });
         }
-
-        // todo: 自动加好友
-        // todo: 自动加群？
-        // todo: 处理 @ 提到我
     }catch(err){
         console.warn('消息处理出错：');
         console.warn(err);
 
-        // try{
-        //     process.nextTick(() => {
-        //         reply(message, notice.error);
-        //     });
-        // }catch(x){ }
+        try{
+            process.nextTick(() => {
+                reply(message, notice.error);
+            });
+        }catch(x){ }
     }
 
     function reply(msg: Message, text: string){
