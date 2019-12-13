@@ -74,16 +74,15 @@ export class ImageMessage
         return BotManager.supportsDownloadingDirectly() ? null : this._additionalImageHandler;
     }
 
-    messagefileDownloaded(imageFile: FileBox) {
+    async messagefileDownloaded(imageFile: FileBox): Promise<void> {
         this._additionalImageHandler = null;
 
-        imageFile.toBuffer().then((buffer) => {
-            const fileId = ChatStore.storeFile(buffer);
-           
-            const message = this.getMetaMessage();
-            message.content = new FileChatMessageContent(fileId, imageFile.name, HistoryMessageType.Image);
-            
-            this._converted = message;
-        });
+        const buffer = await imageFile.toBuffer();
+        const fileId = ChatStore.storeFile(buffer);
+        
+        const message = this.getMetaMessage();
+        message.content = new FileChatMessageContent(fileId, imageFile.name, HistoryMessageType.Image);
+        
+        this._converted = message;
     }
 }

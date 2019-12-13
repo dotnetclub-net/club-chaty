@@ -9,7 +9,7 @@ export interface AdditionalMessageHanlder {
 }
 
 export interface IUseFileMessage {
-    messagefileDownloaded(messageFile: FileBox): void;
+    messagefileDownloaded(messageFile: FileBox): Promise<void>;
 }
 
 export class FileAdditionalMessageHandler implements AdditionalMessageHanlder {
@@ -40,7 +40,7 @@ export class FileAdditionalMessageHandler implements AdditionalMessageHanlder {
         this._accepting = true;
         
         const fileBox = await message.toFileBox();
-        this._convertingMessage.messagefileDownloaded(fileBox);
+        await this._convertingMessage.messagefileDownloaded(fileBox);
     }
     
     get name(): string{

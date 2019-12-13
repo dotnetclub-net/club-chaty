@@ -55,16 +55,15 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
         return BotManager.supportsDownloadingDirectly() ? null : this._additionalMsgHandler;
     }
 
-    messagefileDownloaded(messageFile: FileBox): void {
+    async messagefileDownloaded(messageFile: FileBox): Promise<void>  {
         this._additionalMsgHandler = null;
 
-        messageFile.toBuffer().then((buffer) => {
-            const fileId = ChatStore.storeFile(buffer);
-           
-            const message = this.getMetaMessage();
-            message.content = new FileChatMessageContent(fileId, messageFile.name, HistoryMessageType.Video);
-            
-            this._converted = message;
-        });
+        const buffer = await messageFile.toBuffer();
+        const fileId = ChatStore.storeFile(buffer);
+        
+        const message = this.getMetaMessage();
+        message.content = new FileChatMessageContent(fileId, messageFile.name, HistoryMessageType.Video);
+        
+        this._converted = message;
     }
 }
