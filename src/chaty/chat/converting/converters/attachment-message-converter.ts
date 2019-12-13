@@ -16,8 +16,8 @@ export class AttachmentMessageConverter extends BaseConverter {
         return type === HistoryMessageType.Attachment;
     }
     
-    convertFromXML(parsedXMLObj: any): IntermediateMessage {
-        return new AttachmentMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any, resourceLocator: any): IntermediateMessage {
+        return new AttachmentMessage(parsedXMLObj, resourceLocator);
     }
 }
 
@@ -27,13 +27,19 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
     private _converted : ChatMessage;
     private _additionalMsgHandler : AdditionalMessageHanlder;
 
-    constructor(xmlObj: any){
-        super(xmlObj);
+    constructor(xmlObj: any, resourceLocator: any){
+        super(xmlObj, resourceLocator);
 
         this._additionalMsgHandler = new FileAdditionalMessageHandler('文件', this, [ WeChatyMessageType.Attachment ]);
     }
 
     async getConvertedMessage(): Promise<ChatMessage> {
+        let downloadedBuffer: Buffer;
+        if(!this._converted && this._resourceLocator[this._xmlObj.cdndataurl]){
+            const fileBox = FileBox.fromUrl(this._resourceLocator[this._xmlObj.cdndataurl]);
+            downloadedBuffer = await fileBox.toBuffer();
+        }
+
         if(!this._converted && BotManager.supportsDownloadingDirectly()){
             const file = await BotManager.downloadFile({
                 cdnFileId: this._xmlObj.cdndataurl,
@@ -41,8 +47,11 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
                 totalLength: parseInt(this._xmlObj.datasize),
                 fileType: CDNFileType.ATTACHMENT
             });
-            const buffer = await file.toBuffer();
-            const fileId = ChatStore.storeFile(buffer);
+            downloadedBuffer = await file.toBuffer();
+        }
+
+        if(downloadedBuffer){
+            const fileId = ChatStore.storeFile(downloadedBuffer);
             
             const message = this.getMetaMessage();
             message.content = new FileChatMessageContent(fileId, this._xmlObj.datatitle, HistoryMessageType.Attachment);
@@ -53,7 +62,7 @@ export class AttachmentMessage extends IntermediateMessage implements IUseFileMe
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return BotManager.supportsDownloadingDirectly() ? null : this._additionalMsgHandler;
+        return IntermediateMessage.canDownloadDirectly(this) ? null : this._additionalMsgHandler;
     }
 
     async messagefileDownloaded(messageFile: FileBox): Promise<void> {

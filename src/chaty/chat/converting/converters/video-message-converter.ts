@@ -15,8 +15,8 @@ export class VideoMessageConverter extends BaseConverter {
         return type === HistoryMessageType.Video;
     }
     
-    convertFromXML(parsedXMLObj: any): IntermediateMessage {
-        return new VideoMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any, resourceLocator: any): IntermediateMessage {
+        return new VideoMessage(parsedXMLObj, resourceLocator);
     }
 }
 
@@ -26,13 +26,19 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
     private _converted : ChatMessage;
     private _additionalMsgHandler : AdditionalMessageHanlder;
 
-    constructor(xmlObj: any){
-        super(xmlObj);
+    constructor(xmlObj: any, resourceLocator: any){
+        super(xmlObj, resourceLocator);
 
         this._additionalMsgHandler = new FileAdditionalMessageHandler('视频', this, [WeChatyMessageType.Video]);
     }
     
     async getConvertedMessage(): Promise<ChatMessage> {
+        let downloadedBuffer: Buffer;
+        if(!this._converted && this._resourceLocator[this._xmlObj.cdndataurl]){
+            const fileBox = FileBox.fromUrl(this._resourceLocator[this._xmlObj.cdndataurl]);
+            downloadedBuffer = await fileBox.toBuffer();
+        }
+
         if (!this._converted && BotManager.supportsDownloadingDirectly()) {
             const file = await BotManager.downloadFile({
                 cdnFileId: this._xmlObj.cdndataurl,
@@ -40,11 +46,15 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
                 totalLength: parseInt(this._xmlObj.datasize),
                 fileType: CDNFileType.VIDEO
             });
-            const buffer = await file.toBuffer();
-            const fileId = ChatStore.storeFile(buffer);
+            downloadedBuffer = await file.toBuffer();
+        }
+
+        if(downloadedBuffer){
+            const fileId = ChatStore.storeFile(downloadedBuffer);
 
             const message = this.getMetaMessage();
-            message.content = new FileChatMessageContent(fileId, file.name, HistoryMessageType.Video);
+            const date = new Date().getTime();
+            message.content = new FileChatMessageContent(fileId, `video-${date}`, HistoryMessageType.Video);
             this._converted = message;
         }
 
@@ -52,7 +62,7 @@ export class VideoMessage extends IntermediateMessage implements IUseFileMessage
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return BotManager.supportsDownloadingDirectly() ? null : this._additionalMsgHandler;
+        return IntermediateMessage.canDownloadDirectly(this) ? null : this._additionalMsgHandler;
     }
 
     async messagefileDownloaded(messageFile: FileBox): Promise<void>  {

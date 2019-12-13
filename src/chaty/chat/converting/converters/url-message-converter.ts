@@ -13,8 +13,8 @@ export class UrlMessageConverter extends BaseConverter {
         return type === HistoryMessageType.Url;
     }
     
-    convertFromXML(parsedXMLObj: any): IntermediateMessage {
-        return new UrlMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any, resourceLocator: any): IntermediateMessage {
+        return new UrlMessage(parsedXMLObj, resourceLocator);
     }
 }
 
@@ -22,8 +22,8 @@ export class UrlMessageConverter extends BaseConverter {
 export class UrlMessage extends IntermediateMessage {
     private _converted : ChatMessage;
 
-    constructor(_xmlObj: any){
-        super(_xmlObj);
+    constructor(xmlObj: any, resourceLocator: any){
+        super(xmlObj, resourceLocator);
 
         const message = this.getMetaMessage();
         message.content = new UrlChatMessageContent(

@@ -14,21 +14,11 @@ import { CDNFileType } from "../../../bot/wechaty-bot";
 
 export class ImageMessageConverter extends BaseConverter {
     supportsType(type: HistoryMessageType, parsedXMLObj: any): boolean {
-        if(type === HistoryMessageType.Image){
-            return true;
-        }
-
-        // Question: 如果用户想跳过表情？
-        if(type === HistoryMessageType.Text){
-            return '[表情]' === parsedXMLObj.datadesc || 
-                   '[Sticker]' === parsedXMLObj.datadesc ;
-        }
-
-        return false;
+        return type === HistoryMessageType.Image;
     }
     
-    convertFromXML(parsedXMLObj: any): IntermediateMessage {
-        return new ImageMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any, resourceLocator: any): IntermediateMessage {
+        return new ImageMessage(parsedXMLObj, resourceLocator);
     }
 }
 
@@ -39,8 +29,8 @@ export class ImageMessage
     private _converted : ChatMessage;
     private _additionalImageHandler : AdditionalMessageHanlder;
 
-    constructor(xmlObj: any){
-        super(xmlObj);
+    constructor(xmlObj: any, resourceLocator: any){
+        super(xmlObj, resourceLocator);
 
         let handlerName = '图片';
         const isEmotion = '[表情]' === xmlObj.datadesc ||  '[Sticker]' === xmlObj.datadesc;
@@ -52,6 +42,12 @@ export class ImageMessage
     }
     
     async getConvertedMessage(): Promise<ChatMessage> {
+        let downloadedBuffer: Buffer;
+        if(!this._converted && this._resourceLocator[this._xmlObj.cdndataurl]){
+            const fileBox = FileBox.fromUrl(this._resourceLocator[this._xmlObj.cdndataurl]);
+            downloadedBuffer = await fileBox.toBuffer();
+        }
+
         if (!this._converted && BotManager.supportsDownloadingDirectly()) {
             const file = await BotManager.downloadFile({
                 cdnFileId: this._xmlObj.cdndataurl,
@@ -59,11 +55,15 @@ export class ImageMessage
                 totalLength: parseInt(this._xmlObj.datasize),
                 fileType: CDNFileType.IMAGE
             });
-            const buffer = await file.toBuffer();
-            const fileId = ChatStore.storeFile(buffer);
+            downloadedBuffer = await file.toBuffer();
+        }
+
+        if(downloadedBuffer){
+            const fileId = ChatStore.storeFile(downloadedBuffer);
 
             const message = this.getMetaMessage();
-            message.content = new FileChatMessageContent(fileId, file.name, HistoryMessageType.Image);
+            const date = new Date().getTime();
+            message.content = new FileChatMessageContent(fileId, `picture-${date}`, HistoryMessageType.Image);
             this._converted = message;
         }
 
@@ -71,7 +71,7 @@ export class ImageMessage
     }
     
     get additionalMessageHanlder() : AdditionalMessageHanlder{
-        return BotManager.supportsDownloadingDirectly() ? null : this._additionalImageHandler;
+        return IntermediateMessage.canDownloadDirectly(this) ? null : this._additionalImageHandler;
     }
 
     async messagefileDownloaded(imageFile: FileBox): Promise<void> {

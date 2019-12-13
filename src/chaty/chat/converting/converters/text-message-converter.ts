@@ -13,8 +13,8 @@ export class TextMessageConverter extends BaseConverter {
         return type === HistoryMessageType.Text || type === HistoryMessageType.Url;
     }
     
-    convertFromXML(parsedXMLObj: any): IntermediateMessage {
-        return new TextMessage(parsedXMLObj);
+    convertFromXML(parsedXMLObj: any, resourceLocator: any): IntermediateMessage {
+        return new TextMessage(parsedXMLObj, resourceLocator);
     }
 }
 
@@ -22,8 +22,8 @@ export class TextMessageConverter extends BaseConverter {
 export class TextMessage extends IntermediateMessage {
     private _converted : ChatMessage;
 
-    constructor(_xmlObj: any){
-        super(_xmlObj);
+    constructor(xmlObj: any, resourceLocator: any){
+        super(xmlObj, resourceLocator);
 
         const message = this.getMetaMessage();
         message.content = new TextChatMessageContent(this._xmlObj.datadesc || this._xmlObj.datatitle || this._xmlObj.title || this._xmlObj.desc  || this._xmlObj.des);

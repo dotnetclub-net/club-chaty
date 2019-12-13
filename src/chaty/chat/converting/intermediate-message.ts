@@ -1,11 +1,14 @@
 import ChatMessage from "../messages/chat-message";
 import { AdditionalMessageHanlder } from "./additinal-message-handler";
+import * as BotManager from "../../bot/bot-manager"
 
 
 export default abstract class IntermediateMessage {
     protected _xmlObj : any;
-    constructor(xmlObj: any){
+    protected _resourceLocator : any;
+    constructor(xmlObj: any, resourceLocator: any){
         this._xmlObj = xmlObj;
+        this._resourceLocator = resourceLocator;
     }
 
     abstract getConvertedMessage() : Promise<ChatMessage>;
@@ -28,5 +31,10 @@ export default abstract class IntermediateMessage {
         message.sourceTimestamp = xmlObj.srcMsgCreateTime;
         
         return message;
+    }
+    
+    static canDownloadDirectly(message: IntermediateMessage): boolean {
+        return (message._resourceLocator || message._resourceLocator[message._xmlObj.cdndataurl])
+                || BotManager.supportsDownloadingDirectly()
     }
 }

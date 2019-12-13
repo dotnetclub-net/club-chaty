@@ -5,7 +5,7 @@ import { MessageType } from "wechaty-puppet";
 import ChatMessage from "./messages/chat-message";
 import { TextChatMessageContent } from "./messages/message-content";
 import * as ChatStore from './chat-store';
-import * as xmlParser from 'fast-xml-parser';
+import * as parser from './history-message-text-parser';
 import IntermediateMessage from "./converting/intermediate-message";
 import { ImageMessageConverter } from './converting/converters/image-message-converter';
 import { UrlMessageConverter } from './converting/converters/url-message-converter';
@@ -35,35 +35,10 @@ var allConverters = [
     new TextMessageConverter()
 ];
 
-
-function parseXMLToMsgCollection(msgText): any {
-    const xmlOptions = { attrNodeName: '@', attributeNamePrefix: '', ignoreAttributes: false };
-    const msgObj = xmlParser.parse(msgText, xmlOptions);
-
-    let recordListXmlText = msgObj.msg.appmsg.recorditem.replace(/^\s+/, '');
-    if (recordListXmlText.startsWith('&lt;')){
-        recordListXmlText = unescape(recordListXmlText);
-    }
-    return xmlParser.parse(recordListXmlText, xmlOptions);
-
-
-    function unescape(text){
-        return text.replace(/&apos;/g, "'")
-            .replace(/&quot;/g, '"')
-            .replace(/&gt;/g, '>')
-            .replace(/&lt;/g, '<')
-            .replace(/&amp;/g, '&')
-            .replace(/&amp;/g, '&')
-            .replace(/&#x20;/g, ' ')
-            .replace(/&#x0A;/g, '\n');
-    }
-}
-
-
-
 export default class ConversionSession {
     private _historyMessage: RawChatHistoryMessage;
     private _intermediateMessages: IntermediateMessage[];
+    private _resourceUrls : any;
     private _onCompleted: Function;
     private _createdTime: Date;
     private _converted: boolean;
@@ -79,7 +54,9 @@ export default class ConversionSession {
     }
 
     start(): void {
-        this._intermediateMessages = this.parseAsIntermediateMessages(this._historyMessage.text);
+        const texts = parser.readXMLPayload(this._historyMessage.text);
+        this._resourceUrls = parser.extractResourcesFromXML(texts.resourceText);
+        this._intermediateMessages = this.parseAsIntermediateMessages(texts.messageText);
 
         const state = this.getLatestState();
         if (!state.hasMissingItems) {
@@ -148,9 +125,8 @@ export default class ConversionSession {
         }
     }
 
-    private parseAsIntermediateMessages(rawMsgText: string): IntermediateMessage[] {
-        const msgCollection = parseXMLToMsgCollection(rawMsgText);
-        const msgItems: any[] = msgCollection.recordinfo.datalist.dataitem;
+    private parseAsIntermediateMessages(messageText: string): IntermediateMessage[] {
+        const msgItems: any[] = parser.extractMessagesFromXML(messageText);
 
         return msgItems.map(msgXMLObj => {
             const converter = allConverters.find((c) => {
@@ -160,10 +136,10 @@ export default class ConversionSession {
 
             if (!converter) {
                 // 不支持的消息，使用文本类型，显示原始提示
-                return new TextMessage(msgXMLObj);
+                return new TextMessage(msgXMLObj, this._resourceUrls);
             }
 
-            return converter.convertFromXML(msgXMLObj);
+            return converter.convertFromXML(msgXMLObj, this._resourceUrls);
         });
     }
 
@@ -183,7 +159,8 @@ export default class ConversionSession {
         });
 
         this._converted = true;
-        const converted = await Promise.all(convertingTasks);
+        let converted = await Promise.all(convertingTasks);
+        converted = converted.filter(m => !!m);
 
         const chatId = ChatStore.store(this._historyMessage.fromId, converted);
         this.reply(notice.completed + `\n会话 Id:${this._historyMessage.fromId}/${chatId}`);
