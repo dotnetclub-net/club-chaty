@@ -16,6 +16,7 @@ COPY ./tsconfig.json /dotnet-chaty/
 
 RUN npm install
 RUN npm install --only=dev
+RUN node -e 'const fs=require("fs");const config="./node_modules/wechaty/dist/src/puppet-config.js";var js=fs.readFileSync(config, "utf-8"); fs.writeFileSync(config, js.replace("0.1.0", "0.0.150"), "utf-8")'
 RUN npm run build
 
 CMD ["node", "/dotnet-chaty/dist/index.js"]
