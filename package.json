@@ -19,7 +19,7 @@
     "wechaty": "^0.29.8",
     "wechaty-puppet-padplus": "0.0.150",
     "basic-auth": "^2.0.1",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "nodemon": "^1.18.8",
